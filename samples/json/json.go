@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -36,16 +37,14 @@ func main() {
 
 	defer reader.Close()
 
-	executeRequest(reader, query)
-}
+	decoder := json.NewDecoder(reader)
 
-func executeRequest(reader io.Reader, query *charlatan.Query) {
 	line := 0
 
 	for {
 		line++
 
-		r, err := record.NewJSONRecordFromReader(reader)
+		r, err := record.NewJSONRecordFromDecoder(decoder)
 
 		// end of file
 		if err == io.EOF {

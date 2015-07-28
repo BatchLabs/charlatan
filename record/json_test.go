@@ -1,6 +1,7 @@
 package record
 
 import (
+	"encoding/json"
 	"io"
 	"strings"
 	"testing"
@@ -11,10 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func (r *JSONRecord) Find(field *ch.Field) (*ch.Const, error) {
-
-func testJSONReader() io.Reader {
-	return strings.NewReader(`
+func testJSONDecoder() *json.Decoder {
+	return json.NewDecoder(strings.NewReader(`
 	{
 		"name": "Michel",
 		"b": true,
@@ -23,11 +22,11 @@ func testJSONReader() io.Reader {
 		"a": [],
 		"we":{"need": {"to": {"go": {"deeper": 1, "a": "d"}}}}
 	}
-	`)
+	`))
 }
 
 func TestFindUnexistingField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -36,7 +35,7 @@ func TestFindUnexistingField(t *testing.T) {
 }
 
 func TestFindNotAConstField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -48,7 +47,7 @@ func TestFindNotAConstField(t *testing.T) {
 }
 
 func TestFindTopLevelStringField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -61,7 +60,7 @@ func TestFindTopLevelStringField(t *testing.T) {
 }
 
 func TestFindTopLevelIntField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -74,7 +73,7 @@ func TestFindTopLevelIntField(t *testing.T) {
 }
 
 func TestFindTopLevelBoolField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -87,7 +86,7 @@ func TestFindTopLevelBoolField(t *testing.T) {
 }
 
 func TestFindTopLevelNullField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -99,7 +98,7 @@ func TestFindTopLevelNullField(t *testing.T) {
 }
 
 func TestFindTopLevelEmptyStringField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(strings.NewReader(`{"foo": ""}`))
+	r, err := NewJSONRecordFromDecoder(json.NewDecoder(strings.NewReader(`{"foo": ""}`)))
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -112,7 +111,7 @@ func TestFindTopLevelEmptyStringField(t *testing.T) {
 }
 
 func TestFindDeepStringField(t *testing.T) {
-	r, err := NewJSONRecordFromReader(testJSONReader())
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
@@ -122,4 +121,21 @@ func TestFindDeepStringField(t *testing.T) {
 
 	assert.True(t, c.IsNumeric())
 	assert.Equal(t, int64(1), c.AsInt())
+}
+
+func TestJSONReaderMultipleRecords(t *testing.T) {
+	r := json.NewDecoder(strings.NewReader(`
+	{"age": 42}
+	{"age": 19}
+	`))
+	require.NotNil(t, r)
+
+	_, err := NewJSONRecordFromDecoder(r)
+	require.Nil(t, err)
+
+	_, err = NewJSONRecordFromDecoder(r)
+	require.Nil(t, err)
+
+	_, err = NewJSONRecordFromDecoder(r)
+	assert.Equal(t, io.EOF, err)
 }

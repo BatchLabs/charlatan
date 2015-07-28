@@ -56,6 +56,8 @@ defer reader.Close()
 // skip lines if the query contains "STARTING AT <n>"
 skip := query.StartingAt()
 
+decoder := json.NewDecoder(reader)
+
 for {
     skip--
     if skip >= 0 {
@@ -63,7 +65,7 @@ for {
     }
 
     // get a new JSON record
-    r, err := record.NewJSONRecordFromReader(reader)
+    r, err := record.NewJSONRecordFromDecoder(decoder)
 
     if err == io.EOF {
         break

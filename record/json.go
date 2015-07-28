@@ -3,7 +3,6 @@ package record
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"strings"
 
 	ch "github.com/BatchLabs/charlatan"
@@ -16,11 +15,11 @@ type JSONRecord struct {
 
 var _ ch.Record = &JSONRecord{}
 
-// NewJSONRecordFromReader creates a new JSONRecord from a JSON decoder
-func NewJSONRecordFromReader(r io.Reader) (*JSONRecord, error) {
+// NewJSONRecordFromDecoder creates a new JSONRecord from a JSON decoder
+func NewJSONRecordFromDecoder(dec *json.Decoder) (*JSONRecord, error) {
 	attrs := make(map[string]json.RawMessage)
 
-	if err := json.NewDecoder(r).Decode(&attrs); err != nil {
+	if err := dec.Decode(&attrs); err != nil {
 		return nil, err
 	}
 
