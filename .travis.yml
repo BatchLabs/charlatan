@@ -1,0 +1,13 @@
+language: go
+go:
+- 1.2
+- 1.3
+- 1.4
+- tip
+script:
+- go get -t ./... && go test ./...
+notifications:
+  email: false
+  slack:
+    secure: uV4GgqS7Op/8+vSlOnFbhu+h6cHrgv7OqfpGUZlSXsl/zOiLX7Gvhi9frWOOPWk9urZcXCAPfTV9TVpByZI17vEVAt584sJAOGNW77s2VrXOYuQtmrcWyprFk6FIcgjuvXUvP1jvR6sosoy0rn5veXdPTqG98zTLPBhea2mhxHYDhI9Rt5UHttH/ZjWvKjkR/rlEOL/7ovzoKYGVXvFYnx8KAbVqxCXFJzFf+VTkFjzOcctXnUyuY6gyglS3XGlyUSVAS25Wz1gCQtgIIawFU8YjH4pFVDwf//AIHB6GlqoAQpmrbGMydfEzAmE2hCrC1mETxpu+dyGaBN8oGh1YfWOICqH+B4vZtvj6D910+chWSA9wg6dHlguHrhC8Ske157/tRuRgl3YO60OMVZ7lr32cL775v6snOCt7/g8cbdg64Q/H0CpoIZ+K4y/fIYvYtHTLoAuBNZXU43Cn0pJfvmuDlpNbfZvGtHVZXnhl2PiWgpxLppKQBAly3tNAv3HGb7PuK/BAzgzRSJ6hENbi5ztZlXvFQW1+TWR5XOz0Wyce9Amd/t5gpgBYif9NAC+UujpzKfgqA8i/EFpM8b02QEZo8JaMZIzPGBFqpTjW+iVPar1cMbYkyp4eO6kj+bJM2vk3ovjv4dsyk4RhB49OPjY2SmP0bWlX1IhFKPCBy3I=
+sudo: false
