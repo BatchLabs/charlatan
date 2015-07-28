@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	ch "github.com/batchlabs/charlatan"
+	ch "github.com/BatchLabs/charlatan"
 )
 
 // CSVRecord is a CSV record, i.e. a line from a CSV file

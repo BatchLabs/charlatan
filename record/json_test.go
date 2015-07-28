@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	ch "github.com/batchlabs/charlatan"
+	ch "github.com/BatchLabs/charlatan"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

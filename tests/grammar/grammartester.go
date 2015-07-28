@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	"github.com/batchlabs/charlatan"
+	"github.com/BatchLabs/charlatan"
 )
 
 const testsCount = 10

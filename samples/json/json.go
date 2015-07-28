@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/batchlabs/charlatan"
-	"github.com/batchlabs/charlatan/record"
+	"github.com/BatchLabs/charlatan"
+	"github.com/BatchLabs/charlatan/record"
 )
 
 func usage() {

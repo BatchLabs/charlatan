@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/batchlabs/charlatan"
+	"github.com/BatchLabs/charlatan"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	ch "github.com/batchlabs/charlatan"
+	ch "github.com/BatchLabs/charlatan"
 )
 
 // JSONRecord is a record for JSON objects
