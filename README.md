@@ -55,10 +55,10 @@ defer reader.Close()
 skip := query.StartingAt()
 
 for {
-    if skip > 0 {
+    skip--
+    if skip >= 0 {
         continue
     }
-    skip--
 
     // get a new JSON record
     r, err := record.NewJSONRecordFromReader(reader)
