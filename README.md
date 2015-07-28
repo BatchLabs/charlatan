@@ -116,7 +116,7 @@ func (r *LineRecord) Find(f *charlatan.Field) (*charlatan.Const, error) {
 One can now loop over a file’s content, construct `LineRecord`s from its lines
 and evaluate queries against them:
 
-```
+```go
 query, _ := charlatan.QueryFromString("SELECT c1 FROM myfile WHERE c0 = 'a'")
 
 f, _ := os.Open(query.From())
