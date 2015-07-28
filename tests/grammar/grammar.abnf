@@ -1,0 +1,55 @@
+query = "SELECT" 1*SP select 1*SP
+        "FROM" 1*SP field *1( 1*SP "WHERE" 1*SP expressions ) *1( 1*SP "STARTING" 1*SP "AT" 1*SP int )
+
+select = field *( *SP "," *SP field )
+
+field = fieldtoken *( "." fieldtoken )
+      / "`" 1*(
+          alphanumeric / DIGIT / DQUOTE / LWSP / CR / LF
+        / punctuation / miscchars / "(" / ")" / "'"
+      ) "`"
+
+fieldtoken = ALPHA *( alphanumeric )
+
+expressions = expression *( 1*SP bool-operator 1*SP expression )
+
+expression = field
+           / constant
+           / "(" *SP expression *SP ")"
+           / "(" *SP expression operator expression *SP ")"
+
+operator = *SP comp-operator *SP
+         / 1*SP bool-operator 1*SP
+
+comp-operator = "=" / "!=" / "<" / "<=" / ">" / ">="
+
+bool-operator = "&&" / "||"
+              / "AND" / "OR"
+
+constant = string
+         / int
+         / float
+         / bool
+         / null
+
+
+string = DQUOTE anycharexceptdoublequote DQUOTE
+       / "'"    anycharexceptsinglequote "'"
+
+
+int = *1( *1( "-" ) ) DIGIT *( DIGIT )
+
+float = int *1( "." DIGIT *( DIGIT ) )
+
+bool = "true" / "false"
+
+null = "null" / "NULL"
+
+alphanumeric = DIGIT / ALPHA
+
+punctuation = "." / "," / "?" / ";" / ":" / "!"
+
+miscchars = "=" / "+" / "/" / "*" / "&" / "@" / "#"
+
+anycharexceptdoublequote = alphanumeric / punctuation / miscchars / "'"
+anycharexceptsinglequote = alphanumeric / punctuation / miscchars / DQUOTE

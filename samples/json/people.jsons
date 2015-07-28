@@ -1,0 +1,5 @@
+{"name": "Nico", "age": 54, "stats": {"walking": 42, "running": 104, "biking": 13}}
+{"name": "Vincent", "age": 32, "stats": {"walking": 100, "running": 2, "biking": 3}}
+{"name": "Cedric", "age": 52, "stats": {"walking": 2, "running": 2, "biking": 1000}}
+{"name": "Michel", "age": 83, "stats": {"walking": 0, "running": 0, "biking": 0}}
+{"name": "Gerard", "age": 55, "stats": {"walking": 54, "running": 12, "biking": 33}}
