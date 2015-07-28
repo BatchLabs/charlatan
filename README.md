@@ -142,7 +142,7 @@ Two examples are included in the repository under `sample/csv/` and
 
 ### Authors
 
-Nicolas DOUILLET
-Vincent RISCHMANN
-Baptiste FONTAINE
+- Nicolas DOUILLET
+- Vincent RISCHMANN
+- Baptiste FONTAINE
 
