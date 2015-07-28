@@ -1,5 +1,7 @@
 # Charlatan
 
+[![Build Status](https://travis-ci.org/BatchLabs/charlatan.svg?branch=master)](https://travis-ci.org/BatchLabs/charlatan)
+
 **Charlatan** is a query engine for lists or streams of records in different
 formats. It natively supports CSV and JSON formats but can easily be extended
 to others.
