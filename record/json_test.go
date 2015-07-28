@@ -98,6 +98,19 @@ func TestFindTopLevelNullField(t *testing.T) {
 	assert.True(t, c.IsNull())
 }
 
+func TestFindTopLevelEmptyStringField(t *testing.T) {
+	r, err := NewJSONRecordFromReader(strings.NewReader(`{"foo": ""}`))
+	require.Nil(t, err)
+	require.NotNil(t, r)
+
+	c, err := r.Find(ch.NewField("foo"))
+	require.Nil(t, err)
+	require.NotNil(t, c)
+
+	assert.False(t, c.IsNull())
+	assert.True(t, c.IsString())
+}
+
 func TestFindDeepStringField(t *testing.T) {
 	r, err := NewJSONRecordFromReader(testJSONReader())
 	require.Nil(t, err)

@@ -59,7 +59,8 @@ func jsonToConst(partial json.RawMessage) (*ch.Const, error) {
 
 	asString := string(partial)
 
-	if asString == "null" {
+	// as of 2015-07-28, the tip version of Go parses "null" as an empty string
+	if asString == "" || asString == "null" {
 		return ch.NullConst(), nil
 	}
 
