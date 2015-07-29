@@ -12,15 +12,15 @@ func NewField(name string) *Field {
 }
 
 // Evaluate evaluates the field on a record
-func (f *Field) Evaluate(record Record) (*Const, error) {
-	return record.Find(f)
+func (f Field) Evaluate(record Record) (*Const, error) {
+	return record.Find(&f)
 }
 
 // Name returns the field's name
-func (f *Field) Name() string {
+func (f Field) Name() string {
 	return f.name
 }
 
-func (f *Field) String() string {
+func (f Field) String() string {
 	return f.name
 }

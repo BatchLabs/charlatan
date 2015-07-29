@@ -11,12 +11,17 @@ field = fieldtoken *( "." fieldtoken )
 
 fieldtoken = ALPHA *( alphanumeric )
 
-expressions = expression *( 1*SP bool-operator 1*SP expression )
+expressions = top-expression *( 1*SP bool-operator 1*SP top-expression )
 
-expression = field
-           / constant
+top-expression = expression / range-test
+
+value = field / constant
+
+expression = value
            / "(" *SP expression *SP ")"
            / "(" *SP expression operator expression *SP ")"
+
+range-test = value 1*SP "IN" 1*SP "[" *SP value *SP "," *SP value *SP "]"
 
 operator = *SP comp-operator *SP
          / 1*SP bool-operator 1*SP

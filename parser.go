@@ -1,6 +1,7 @@
 package charlatan
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -25,6 +26,12 @@ const (
 
 	startingInitial
 	startingAt
+
+	rangeInitial
+	rangeLeft
+	rangeComma
+	rangeRight
+	rangeEnd
 
 	beforeEnd
 	end
@@ -62,6 +69,9 @@ type context struct {
 	first *logicalOperation
 	last  *logicalOperation
 
+	// the current range test, if there's one
+	rangeTest *rangeTestOperation
+
 	// the current logical operator
 	logicalOperator tokenType
 
@@ -74,12 +84,11 @@ type context struct {
 // parserFromString creates a new parser from the given string
 func parserFromString(s string) *parser {
 	return &parser{
-		lexerFromString(s),
-		initial,
-		make([]*Field, 0),
-		nil,
-		make([]*context, 0),
-		newContext(),
+		lexer:   lexerFromString(s),
+		state:   initial,
+		fields:  make([]*Field, 0),
+		stack:   make([]*context, 0),
+		current: newContext(),
 	}
 }
 
@@ -102,19 +111,19 @@ func (p *parser) Parse() (*Query, error) {
 		case initial:
 			p.state, err = p.initialState(tok)
 
-		// select part
+		// SELECT
 		case selectInitial:
 			p.state, err = p.selectState(tok)
 		case selectField:
 			p.state, err = p.selectFieldState(tok)
 
-		// from part
+		// FROM
 		case fromInitial:
 			p.state, err = p.fromState(tok)
 		case fromName:
 			p.state, err = p.fromNameState(tok)
 
-		// where part
+		// WHERE
 		case operationInitial:
 			p.state, err = p.operationState(tok)
 		case leftOperand:
@@ -124,9 +133,22 @@ func (p *parser) Parse() (*Query, error) {
 		case rightOperand:
 			p.state, err = p.operandRightState(tok)
 
-		// 'starting at' part
+			// range
+		case rangeInitial:
+			p.state, err = p.expect(tokLeftSquareBracket, tok, rangeLeft)
+		case rangeLeft:
+			p.state, err = p.rangeLeft(tok)
+		case rangeComma:
+			p.state, err = p.expect(tokComma, tok, rangeRight)
+		case rangeRight:
+			p.state, err = p.rangeRight(tok)
+		case rangeEnd:
+			p.state, err = p.expect(tokRightSquareBracket, tok, rightOperand)
+
+		// STARTING
 		case startingInitial:
-			p.state, err = p.startingInitial(tok)
+			p.state, err = p.expect(tokAt, tok, startingAt)
+		// AT
 		case startingAt:
 			p.state, err = p.startingAt(tok)
 
@@ -223,6 +245,16 @@ func (p *parser) fromNameState(tok *token) (state, error) {
 	return unexpected(tok, tokWhere)
 }
 
+func tok2operand(tok *token) (operand, error) {
+	if tok.isField() {
+		return NewField(tok.Value), nil
+	}
+	if tok.isConst() {
+		return tok.Const()
+	}
+	return nil, fmt.Errorf("Invalid token: not an operand: %v", tok)
+}
+
 // We’re waiting for a left operand, or a (
 func (p *parser) operationState(tok *token) (state, error) {
 	if tok.Type == tokLeftParenthesis {
@@ -231,17 +263,11 @@ func (p *parser) operationState(tok *token) (state, error) {
 		return operationInitial, nil
 	}
 
-	if tok.isField() {
-		p.current.left = NewField(tok.Value)
-	} else if tok.isConst() {
-		c, err := tok.Const()
-		if err != nil {
-			return invalidState, err
-		}
-		p.current.left = newConstOperand(c)
-	} else {
-		return unexpected(tok, tokInvalid)
+	c, err := tok2operand(tok)
+	if err != nil {
+		return invalidState, err
 	}
+	p.current.left = c
 
 	// the left operand has been setted jump to the left operand state
 	return leftOperand, nil
@@ -250,6 +276,7 @@ func (p *parser) operationState(tok *token) (state, error) {
 // We’re waiting for an operator:
 //     - logical operator, we step to the next operation
 //     - comparison operator, we continue to the operator state
+//     - "IN", we continue to the range operator state
 //
 // We can encounter a ), or the end
 func (p *parser) operandLeftState(tok *token) (state, error) {
@@ -278,7 +305,9 @@ func (p *parser) operandLeftState(tok *token) (state, error) {
 		p.current.logicalOperator = tok.Type
 		return operationInitial, nil
 
-	} else if tok.isComparisonOperator() {
+	}
+
+	if tok.isComparisonOperator() {
 
 		// set the operator and jump to the operator state
 		p.current.operator = tok.Type
@@ -290,7 +319,46 @@ func (p *parser) operandLeftState(tok *token) (state, error) {
 		return p.popContext()
 	}
 
+	if tok.Type == tokIn {
+		p.current.rangeTest = &rangeTestOperation{
+			test: p.current.left,
+		}
+		p.current.left = p.current.rangeTest
+
+		return rangeInitial, nil
+	}
+
 	return unexpected(tok, tokInvalid)
+}
+
+func (p *parser) rangeLeft(tok *token) (state, error) {
+	c, err := tok2operand(tok)
+	if err != nil {
+		return invalidState, err
+	}
+
+	if p.current.rangeTest == nil {
+		return invalidState, errors.New("Nil range test")
+	}
+
+	p.current.rangeTest.min = c
+
+	return rangeComma, nil
+}
+
+func (p *parser) rangeRight(tok *token) (state, error) {
+	c, err := tok2operand(tok)
+	if err != nil {
+		return invalidState, err
+	}
+
+	if p.current.rangeTest == nil {
+		return invalidState, errors.New("Nil range test")
+	}
+
+	p.current.rangeTest.max = c
+
+	return rangeEnd, nil
 }
 
 // We're waiting for a right operand, nothing else, or a (
@@ -311,7 +379,7 @@ func (p *parser) operatorState(tok *token) (state, error) {
 		if err != nil {
 			return invalidState, err
 		}
-		p.current.right = newConstOperand(c)
+		p.current.right = c
 	} else {
 		return unexpected(tok, tokInvalid)
 	}
@@ -356,10 +424,7 @@ func (p *parser) operandRightState(tok *token) (state, error) {
 }
 
 func (p *parser) startingInitial(tok *token) (state, error) {
-	if tok.Type == tokAt {
-		return startingAt, nil
-	}
-	return unexpected(tok, tokAt)
+	return p.expect(tokAt, tok, startingAt)
 }
 
 func (p *parser) startingAt(tok *token) (state, error) {
@@ -376,6 +441,13 @@ func (p *parser) startingAt(tok *token) (state, error) {
 	}
 
 	return unexpected(tok, tokInt)
+}
+
+func (p *parser) expect(expected tokenType, tok *token, state state) (state, error) {
+	if tok.Type != expected {
+		return unexpected(tok, expected)
+	}
+	return state, nil
 }
 
 func (p *parser) beforeEnd(tok *token) (state, error) {
@@ -445,13 +517,17 @@ func newContext() *context {
 func (c *context) endOperation() error {
 
 	if c.left == nil {
-		return fmt.Errorf("Empty operation")
+		return errors.New("Empty operation")
 	}
 
 	// Creates the operand
 
 	var op operand
 	var err error
+
+	if c.rangeTest != nil {
+		op = c.rangeTest
+	}
 
 	if c.operator != tokInvalid {
 		op, err = newComparison(c.left, operatorTypeFromTokenType(c.operator), c.right)
@@ -477,7 +553,7 @@ func (c *context) endOperation() error {
 	if c.logicalOperator == tokInvalid {
 
 		if c.first != nil || c.last != nil {
-			return fmt.Errorf("Unexpected state, the logical operations should be not initialized")
+			return errors.New("Unexpected state, the logical operations should be not initialized")
 		}
 
 		c.first = lo
@@ -487,7 +563,7 @@ func (c *context) endOperation() error {
 	}
 
 	if c.first == nil || c.last == nil {
-		return fmt.Errorf("Unexpected state, no logical operation initialized")
+		return errors.New("Unexpected state, no logical operation initialized")
 	}
 
 	// define how to chain according the logical operator

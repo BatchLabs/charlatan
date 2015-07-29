@@ -120,6 +120,12 @@ func ConstFromString(s string) *Const {
 	return StringConst(s)
 }
 
+// Evaluate evaluates a const against a record. In practice it always returns a
+// pointer on itself
+func (c Const) Evaluate(r Record) (*Const, error) {
+	return &c, nil
+}
+
 func parseBool(s string) (bool, error) {
 	switch strings.ToUpper(s) {
 	case "TRUE":

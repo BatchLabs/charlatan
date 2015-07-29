@@ -46,7 +46,7 @@ func (l *lexer) skipWhiteSpaces() error {
 	return nil
 }
 
-// NextToken readss the next token and returns it
+// NextToken reads the next token and returns it
 func (l *lexer) NextToken() (*token, error) {
 	if err := l.skipWhiteSpaces(); err != nil {
 		if err == io.EOF {
@@ -84,6 +84,10 @@ func (l *lexer) NextToken() (*token, error) {
 		return l.simpleToken(tokLeftParenthesis, index)
 	case ')':
 		return l.simpleToken(tokRightParenthesis, index)
+	case '[':
+		return l.simpleToken(tokLeftSquareBracket, index)
+	case ']':
+		return l.simpleToken(tokRightSquareBracket, index)
 	case ',':
 		return l.simpleToken(tokComma, index)
 	}
@@ -114,6 +118,8 @@ func (l *lexer) NextToken() (*token, error) {
 		return l.token(tokAnd, k, index)
 	case "OR":
 		return l.token(tokOr, k, index)
+	case "IN":
+		return l.token(tokIn, k, index)
 	}
 
 	// special values
@@ -236,7 +242,7 @@ func (l *lexer) readWhile(cond func(rune) bool) (string, error) {
 }
 
 func isWordRune(r rune) bool {
-	return !unicode.IsSpace(r) && strings.IndexRune("(),`'\"|&=!<>", r) == -1
+	return !unicode.IsSpace(r) && strings.IndexRune("(),`'\"|&=!<>[]", r) == -1
 }
 
 func isOperatorRune(r rune) bool {
