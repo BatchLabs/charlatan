@@ -2,49 +2,49 @@ package charlatan
 
 import "fmt"
 
-// Operand is an operand, can be evaluated and have to return a constant.
+// operand is an operand, can be evaluated and have to return a constant.
 // Returns a error, if the evaluation is not possible
-type Operand interface {
+type operand interface {
 	Evaluate(Record) (*Const, error)
 	String() string
 }
 
-// ConstOperand is the constant operand
-type ConstOperand struct {
+// constOperand is the constant operand
+type constOperand struct {
 	constant *Const
 }
 
-// Comparison is the comparison operation
-type Comparison struct {
-	left     Operand
-	operator OperatorType
-	right    Operand
+// comparison is the comparison operation
+type comparison struct {
+	left     operand
+	operator operatorType
+	right    operand
 }
 
-// LogicalOperation is the logical operation
-type LogicalOperation struct {
-	left     Operand
-	operator OperatorType
-	right    Operand
+// logicalOperation is the logical operation
+type logicalOperation struct {
+	left     operand
+	operator operatorType
+	right    operand
 }
 
-// GroupOperand is the group operand
+// groupOperand is the group operand
 // Just keep in mind that there was () surrounding this operation
-type GroupOperand struct {
-	operand Operand
+type groupOperand struct {
+	operand operand
 }
 
-// NewConstOperand returns a new ConstOperand from the given Const
-func NewConstOperand(constant *Const) *ConstOperand {
-	return &ConstOperand{constant}
+// newConstOperand returns a new constOperand from the given Const
+func newConstOperand(constant *Const) *constOperand {
+	return &constOperand{constant}
 }
 
 // Evaluate evaluates the constant against a record.
-func (c *ConstOperand) Evaluate(record Record) (*Const, error) {
+func (c *constOperand) Evaluate(record Record) (*Const, error) {
 	return c.constant, nil
 }
 
-func (c *ConstOperand) String() string {
+func (c *constOperand) String() string {
 	s := c.constant.String()
 	if c.constant.IsString() {
 		return fmt.Sprintf("'%s'", s)
@@ -52,11 +52,11 @@ func (c *ConstOperand) String() string {
 	return s
 }
 
-// NewLogicalOperation creates a new logicial operation from the given operator
+// newLogicalOperation creates a new logicial operation from the given operator
 // and operands
-func NewLogicalOperation(left Operand, operator OperatorType, right Operand) (*LogicalOperation, error) {
+func newLogicalOperation(left operand, operator operatorType, right operand) (*logicalOperation, error) {
 
-	o, err := newLogicalOperation(left)
+	o, err := newLeftLogicalOperation(left)
 	if err != nil {
 		return nil, err
 	}
@@ -68,18 +68,18 @@ func NewLogicalOperation(left Operand, operator OperatorType, right Operand) (*L
 	return o, nil
 }
 
-// An internal constructor, just with the left operand
-func newLogicalOperation(left Operand) (*LogicalOperation, error) {
+// A constructor with the left operand only
+func newLeftLogicalOperation(left operand) (*logicalOperation, error) {
 
 	if left == nil {
 		return nil, fmt.Errorf("Can't creates a new comparison with the left operand nil")
 	}
 
-	return &LogicalOperation{left, -1, nil}, nil
+	return &logicalOperation{left, -1, nil}, nil
 }
 
 // Chain a right operand with the given operator
-func (o *LogicalOperation) chain(operator OperatorType, right Operand) error {
+func (o *logicalOperation) chain(operator operatorType, right operand) error {
 
 	if right == nil {
 		return fmt.Errorf("Can't creates a new comparison with the right operand nil")
@@ -97,9 +97,9 @@ func (o *LogicalOperation) chain(operator OperatorType, right Operand) error {
 
 // Simplify this operation
 // In case of the right operand is missing, just return the left one
-func (o *LogicalOperation) simplify() Operand {
+func (o *logicalOperation) simplify() operand {
 
-	if left, ok := o.left.(*LogicalOperation); ok {
+	if left, ok := o.left.(*logicalOperation); ok {
 		o.left = left.simplify()
 	}
 
@@ -107,7 +107,7 @@ func (o *LogicalOperation) simplify() Operand {
 		return o.left
 	}
 
-	if right, ok := o.right.(*LogicalOperation); ok {
+	if right, ok := o.right.(*logicalOperation); ok {
 		o.right = right.simplify()
 	}
 
@@ -115,7 +115,7 @@ func (o *LogicalOperation) simplify() Operand {
 }
 
 // Evaluate evaluates the logical operation against the given record
-func (o *LogicalOperation) Evaluate(record Record) (*Const, error) {
+func (o *logicalOperation) Evaluate(record Record) (*Const, error) {
 
 	var err error
 	var leftValue, rightValue *Const
@@ -128,12 +128,12 @@ func (o *LogicalOperation) Evaluate(record Record) (*Const, error) {
 	leftBool := leftValue.AsBool()
 
 	// AND
-	if !leftBool && o.operator == OperatorAnd {
+	if !leftBool && o.operator == operatorAnd {
 		return BoolConst(false), nil
 	}
 
 	// OR
-	if leftBool && o.operator == OperatorOr {
+	if leftBool && o.operator == operatorOr {
 		return BoolConst(true), nil
 	}
 
@@ -145,31 +145,31 @@ func (o *LogicalOperation) Evaluate(record Record) (*Const, error) {
 	return BoolConst(rightValue.AsBool()), nil
 }
 
-func (o *LogicalOperation) String() string {
+func (o *logicalOperation) String() string {
 	switch o.operator {
-	case OperatorAnd:
+	case operatorAnd:
 		return fmt.Sprintf("%s AND %s", o.left, o.right)
-	case OperatorOr:
+	case operatorOr:
 		return fmt.Sprintf("%s OR %s", o.left, o.right)
 	default:
 		return "Unknown operator"
 	}
 }
 
-// NewGroupOperand returns a new group operand from the given operand
-func NewGroupOperand(operand Operand) (*GroupOperand, error) {
+// newGroupOperand returns a new group operand from the given operand
+func newGroupOperand(operand operand) (*groupOperand, error) {
 	if operand == nil {
 		return nil, fmt.Errorf("Can't creates a new group with the an operand nil")
 	}
 
-	return &GroupOperand{operand}, nil
+	return &groupOperand{operand}, nil
 }
 
 // Evaluate evaluates the group operand against the given record
-func (o *GroupOperand) Evaluate(record Record) (*Const, error) {
+func (o *groupOperand) Evaluate(record Record) (*Const, error) {
 	return o.operand.Evaluate(record)
 }
 
-func (o *GroupOperand) String() string {
+func (o *groupOperand) String() string {
 	return fmt.Sprintf("(%s)", o.operand)
 }

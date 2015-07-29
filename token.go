@@ -4,66 +4,66 @@ import (
 	"fmt"
 )
 
-// TokenType is a token type
-type TokenType int
+// tokenType is a token type
+type tokenType int
 
 // token types are the types of the tokens used by the lexer
 const (
-	TokInvalid TokenType = iota
+	tokInvalid tokenType = iota
 
-	// TokField is an alpha-numeric field
-	TokField
+	// tokField is an alpha-numeric field
+	tokField
 
 	// keywords
 
 	tokKeywordStart
-	TokSelect   // SELECT
-	TokFrom     // FROM
-	TokWhere    // WHERE
-	TokStarting // STARTING
-	TokAt       // AT
+	tokSelect   // SELECT
+	tokFrom     // FROM
+	tokWhere    // WHERE
+	tokStarting // STARTING
+	tokAt       // AT
 	tokKeywordEnd
 
 	// operators
 
 	tokLogicalOperatorStart
-	TokAnd // && or AND
-	TokOr  // || or OR
+	tokAnd // && or AND
+	tokOr  // || or OR
 	tokLogicalOperatorEnd
 
 	tokComparisonOperatorStart
-	TokEq  // =
-	TokNeq // !=
-	TokLt  // <
-	TokLte // <=
-	TokGt  // >
-	TokGte // >=
+	tokEq  // =
+	tokNeq // !=
+	tokLt  // <
+	tokLte // <=
+	tokGt  // >
+	tokGte // >=
 	tokComparisonOperatorEnd
 
-	TokInt
-	TokFloat
-	TokString
+	tokInt
+	tokFloat
+	tokString
 
 	// special values
 
-	TokTrue  // true
-	TokFalse // false
-	TokNull  // null
+	tokTrue  // true
+	tokFalse // false
+	tokNull  // null
 
 	// misc
 
-	TokLeftParenthesis  // (
-	TokRightParenthesis // )
-	TokComma            // ,
+	tokLeftParenthesis  // (
+	tokRightParenthesis // )
+	tokComma            // ,
 
-	// TokEnd is the end token
-	TokEnd = -1
+	// tokEnd is the end token
+	tokEnd = -1
 )
 
-// Token is the token found by the lexer
-type Token struct {
+// token is the token found by the lexer
+type token struct {
 	// the token type
-	Type TokenType
+	Type tokenType
 	// the string value of this token
 	Value string
 	// the position into the parsed string
@@ -71,108 +71,108 @@ type Token struct {
 }
 
 // Const returns the token's value as a Const
-func (tok Token) Const() (*Const, error) {
+func (tok token) Const() (*Const, error) {
 	switch tok.Type {
-	case TokTrue:
+	case tokTrue:
 		return BoolConst(true), nil
-	case TokFalse:
+	case tokFalse:
 		return BoolConst(false), nil
-	case TokNull:
+	case tokNull:
 		return NullConst(), nil
-	case TokString:
+	case tokString:
 		return StringConst(tok.Value), nil
-	case TokInt, TokFloat:
+	case tokInt, tokFloat:
 		return ConstFromString(tok.Value), nil
 	default:
 		return nil, fmt.Errorf("Token type %v isn't a const", tok.Type)
 	}
 }
 
-// IsEnd checks if the token is a TokEnd
-func (tok Token) IsEnd() bool { return tok.Type == TokEnd }
+// isEnd checks if the token is a tokEnd
+func (tok token) isEnd() bool { return tok.Type == tokEnd }
 
-// IsNumeric checks if the token is numeric
-func (tok Token) IsNumeric() bool { return tok.Type == TokInt || tok.Type == TokFloat }
+// isNumeric checks if the token is numeric
+func (tok token) isNumeric() bool { return tok.Type == tokInt || tok.Type == tokFloat }
 
-// IsKeyword checks if the token is a keyword
-func (tok Token) IsKeyword() bool { return tok.Type > tokKeywordStart && tok.Type < tokKeywordEnd }
+// isKeyword checks if the token is a keyword
+func (tok token) isKeyword() bool { return tok.Type > tokKeywordStart && tok.Type < tokKeywordEnd }
 
-// IsOperator checks if the token is an operator
-func (tok Token) IsOperator() bool { return tok.IsLogicalOperator() || tok.IsComparisonOperator() }
+// isOperator checks if the token is an operator
+func (tok token) isOperator() bool { return tok.isLogicalOperator() || tok.isComparisonOperator() }
 
-// IsLogicalOperator checks if the token is a logical operator
-func (tok Token) IsLogicalOperator() bool {
+// isLogicalOperator checks if the token is a logical operator
+func (tok token) isLogicalOperator() bool {
 	return tok.Type > tokLogicalOperatorStart && tok.Type < tokLogicalOperatorEnd
 }
 
-// IsComparisonOperator checks if the token is a comparison operator
-func (tok Token) IsComparisonOperator() bool {
+// isComparisonOperator checks if the token is a comparison operator
+func (tok token) isComparisonOperator() bool {
 	return tok.Type > tokComparisonOperatorStart && tok.Type < tokComparisonOperatorEnd
 }
 
-// IsConst tests if the token represents a constant value. If so, one can use
+// isConst tests if the token represents a constant value. If so, one can use
 // the Const() method to get the const value.
-func (tok Token) IsConst() bool {
-	return tok.IsNumeric() || tok.Type == TokString || tok.Type == TokTrue ||
-		tok.Type == TokFalse || tok.Type == TokNull
+func (tok token) isConst() bool {
+	return tok.isNumeric() || tok.Type == tokString || tok.Type == tokTrue ||
+		tok.Type == tokFalse || tok.Type == tokNull
 }
 
-// IsField tests if the token represents a field
-func (tok Token) IsField() bool {
-	return tok.Type == TokField
+// isField tests if the token represents a field
+func (tok token) isField() bool {
+	return tok.Type == tokField
 }
 
-func (tok Token) String() string {
+func (tok token) String() string {
 	return fmt.Sprintf("%d:%s(%s)", tok.Pos, tok.Type, tok.Value)
 }
 
-func (t TokenType) String() string {
+func (t tokenType) String() string {
 	switch t {
-	case TokEnd:
+	case tokEnd:
 		return "End"
-	case TokField:
+	case tokField:
 		return "Field"
-	case TokTrue:
+	case tokTrue:
 		return "True"
-	case TokFalse:
+	case tokFalse:
 		return "False"
-	case TokNull:
+	case tokNull:
 		return "Null"
-	case TokInt:
+	case tokInt:
 		return "Int"
-	case TokFloat:
+	case tokFloat:
 		return "Float"
-	case TokSelect:
+	case tokSelect:
 		return "Select"
-	case TokFrom:
+	case tokFrom:
 		return "From"
-	case TokWhere:
+	case tokWhere:
 		return "Where"
-	case TokStarting:
+	case tokStarting:
 		return "Starting"
-	case TokAt:
+	case tokAt:
 		return "At"
-	case TokAnd:
+	case tokAnd:
 		return "And"
-	case TokOr:
+	case tokOr:
 		return "Or"
-	case TokEq:
+	case tokEq:
 		return "Eq"
-	case TokNeq:
+	case tokNeq:
 		return "Neq"
-	case TokLt:
+	case tokLt:
 		return "Lt"
-	case TokLte:
+	case tokLte:
 		return "Lte"
-	case TokGt:
+	case tokGt:
 		return "Gt"
-	case TokGte:
+	case tokGte:
 		return "Gte"
-	case TokLeftParenthesis:
-		return "TokLeftParenthesis"
-	case TokRightParenthesis:
-		return "TokRightParenthesis"
-	case TokComma:
+	case tokLeftParenthesis:
+		return "tokLeftParenthesis"
+	case tokRightParenthesis:
+		return "tokRightParenthesis"
+	case tokComma:
 		return "Comma"
 	}
 

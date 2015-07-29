@@ -6,22 +6,22 @@ import (
 	"strings"
 )
 
-// ConstType represents the constant types
-type ConstType int
+// constType represents the constant types
+type constType int
 
 // types are either null, int, float, bool or string
 const (
-	ConstNull ConstType = iota
-	ConstInt
-	ConstFloat
-	ConstBool
-	ConstString
+	constNull constType = iota
+	constInt
+	constFloat
+	constBool
+	constString
 )
 
 // Const represents a Constant
 type Const struct {
 	// the type of this constant
-	constType ConstType
+	constType constType
 	// the values, stored into the right var
 	intValue    int64
 	floatValue  float64
@@ -77,29 +77,29 @@ func NewConst(value interface{}) (*Const, error) {
 	}
 }
 
-// NullConst returns a new const of type ConstNull
+// NullConst returns a new const of type null
 func NullConst() *Const {
-	return &Const{constType: ConstNull}
+	return &Const{constType: constNull}
 }
 
-// IntConst returns a new Const of type ConstInt
+// IntConst returns a new Const of type int
 func IntConst(value int64) *Const {
-	return &Const{intValue: value, constType: ConstInt}
+	return &Const{intValue: value, constType: constInt}
 }
 
-// FloatConst returns a new Const of type ConstFloat
+// FloatConst returns a new Const of type float
 func FloatConst(value float64) *Const {
-	return &Const{floatValue: value, constType: ConstFloat}
+	return &Const{floatValue: value, constType: constFloat}
 }
 
 // BoolConst returns a new Const of type Bool
 func BoolConst(value bool) *Const {
-	return &Const{boolValue: value, constType: ConstBool}
+	return &Const{boolValue: value, constType: constBool}
 }
 
 // StringConst returns a new Const of type String
 func StringConst(value string) *Const {
-	return &Const{stringValue: value, constType: ConstString}
+	return &Const{stringValue: value, constType: constString}
 }
 
 // ConstFromString parses a Const from a string
@@ -132,40 +132,40 @@ func parseBool(s string) (bool, error) {
 }
 
 // GetType returns the type of a const
-func (c Const) GetType() ConstType {
+func (c Const) GetType() constType {
 	return c.constType
 }
 
 // IsNumeric tests if a const has a numeric type (int or float)
 func (c Const) IsNumeric() bool {
-	return c.constType == ConstInt || c.constType == ConstFloat
+	return c.constType == constInt || c.constType == constFloat
 }
 
-// IsBool tests if a const is of ConstBool type
+// IsBool tests if a const is a bool
 func (c Const) IsBool() bool {
-	return c.constType == ConstBool
+	return c.constType == constBool
 }
 
-// IsString tests if a const is of ConstString type
+// IsString tests if a const is a string
 func (c Const) IsString() bool {
-	return c.constType == ConstString
+	return c.constType == constString
 }
 
-// IsNull tests if a consts is of ConstNull type
+// IsNull tests if a const is null
 func (c Const) IsNull() bool {
-	return c.constType == ConstNull
+	return c.constType == constNull
 }
 
 // Value returns the value of a const
 func (c Const) Value() interface{} {
 	switch c.constType {
-	case ConstInt:
+	case constInt:
 		return c.intValue
-	case ConstFloat:
+	case constFloat:
 		return c.floatValue
-	case ConstBool:
+	case constBool:
 		return c.boolValue
-	case ConstString:
+	case constString:
 		return c.stringValue
 	}
 	return nil
@@ -176,14 +176,14 @@ func (c Const) String() string {
 }
 
 // AsFloat converts into a float64
-// Returns 0 for the const types ConstNull and ConstString
+// Returns 0 if the const is a string or null
 func (c Const) AsFloat() float64 {
 	switch c.constType {
-	case ConstInt:
+	case constInt:
 		return float64(c.intValue)
-	case ConstFloat:
+	case constFloat:
 		return c.floatValue
-	case ConstBool:
+	case constBool:
 		if c.boolValue {
 			return 1.0
 		}
@@ -193,14 +193,14 @@ func (c Const) AsFloat() float64 {
 }
 
 // AsInt converts into an int64
-// Returns 0 for the cont types ConstNull and ConstString
+// Returns 0 if the const is a string or null
 func (c Const) AsInt() int64 {
 	switch c.constType {
-	case ConstInt:
+	case constInt:
 		return c.intValue
-	case ConstFloat:
+	case constFloat:
 		return int64(c.floatValue)
-	case ConstBool:
+	case constBool:
 		if c.boolValue {
 			return 1
 		}
@@ -213,18 +213,18 @@ func (c Const) AsInt() int64 {
 //     - for bool, returns the value
 //     - for null, returns false
 //     - for numeric, returns true if not 0
-//     - for strings, return true (test existance)
+//     - for strings, return true (test existence)
 func (c Const) AsBool() bool {
 	switch c.constType {
-	case ConstNull:
+	case constNull:
 		return false
-	case ConstInt:
+	case constInt:
 		return c.intValue != 0
-	case ConstFloat:
+	case constFloat:
 		return c.floatValue != 0
-	case ConstBool:
+	case constBool:
 		return c.boolValue
-	case ConstString:
+	case constString:
 		return true
 	}
 	return false
@@ -233,15 +233,15 @@ func (c Const) AsBool() bool {
 // AsString converts into a string
 func (c Const) AsString() string {
 	switch c.constType {
-	case ConstNull:
+	case constNull:
 		return "null"
-	case ConstInt:
+	case constInt:
 		return strconv.FormatInt(c.intValue, 10)
-	case ConstFloat:
+	case constFloat:
 		return strconv.FormatFloat(c.floatValue, 'f', 2, 64)
-	case ConstBool:
+	case constBool:
 		return strconv.FormatBool(c.boolValue)
-	case ConstString:
+	case constString:
 		return c.stringValue
 	}
 
@@ -260,15 +260,15 @@ func (c Const) CompareTo(c2 *Const) (int, error) {
 
 	if c.constType == c2.constType {
 		switch c.constType {
-		case ConstNull:
+		case constNull:
 			return 0, nil
-		case ConstInt:
+		case constInt:
 			return int(c.intValue - c2.intValue), nil
-		case ConstFloat:
+		case constFloat:
 			return int(c.floatValue - c2.floatValue), nil
-		case ConstBool:
+		case constBool:
 			return cmpBools(c.boolValue, c2.boolValue), nil
-		case ConstString:
+		case constString:
 			return cmpStrings(c.stringValue, c2.stringValue), nil
 		default:
 			return 0, fmt.Errorf("Unknown const type: %v", c.constType)
@@ -317,17 +317,17 @@ func cmpStrings(s1, s2 string) int {
 	return -1
 }
 
-func (t ConstType) String() string {
+func (t constType) String() string {
 	switch t {
-	case ConstNull:
+	case constNull:
 		return "NULL"
-	case ConstInt:
+	case constInt:
 		return "INT"
-	case ConstFloat:
+	case constFloat:
 		return "FLOAT"
-	case ConstBool:
+	case constBool:
 		return "BOOL"
-	case ConstString:
+	case constString:
 		return "STRING"
 	default:
 		return "UNDEFINED"

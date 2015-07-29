@@ -7,56 +7,56 @@ import (
 )
 
 func TestTokenIsEnd(t *testing.T) {
-	assert.True(t, Token{Type: TokEnd}.IsEnd())
+	assert.True(t, token{Type: tokEnd}.isEnd())
 }
 
 func TestTokenIsNumeric(t *testing.T) {
-	assert.True(t, Token{Type: TokInt}.IsNumeric())
-	assert.True(t, Token{Type: TokFloat}.IsNumeric())
+	assert.True(t, token{Type: tokInt}.isNumeric())
+	assert.True(t, token{Type: tokFloat}.isNumeric())
 }
 
 func TestTokenIsKeyword(t *testing.T) {
-	assert.True(t, Token{Type: TokSelect}.IsKeyword())
-	assert.True(t, Token{Type: TokFrom}.IsKeyword())
-	assert.True(t, Token{Type: TokWhere}.IsKeyword())
-	assert.True(t, Token{Type: TokStarting}.IsKeyword())
+	assert.True(t, token{Type: tokSelect}.isKeyword())
+	assert.True(t, token{Type: tokFrom}.isKeyword())
+	assert.True(t, token{Type: tokWhere}.isKeyword())
+	assert.True(t, token{Type: tokStarting}.isKeyword())
 
-	for _, ty := range []TokenType{
-		TokSelect, TokFrom, TokWhere, TokStarting,
+	for _, ty := range []tokenType{
+		tokSelect, tokFrom, tokWhere, tokStarting,
 	} {
-		assert.True(t, Token{Type: ty}.IsKeyword())
+		assert.True(t, token{Type: ty}.isKeyword())
 	}
 }
 
 func TestTokenIsOperator(t *testing.T) {
-	for _, ty := range []TokenType{
-		TokAnd, TokOr, TokEq, TokNeq, TokLt, TokLte, TokGt, TokGte,
+	for _, ty := range []tokenType{
+		tokAnd, tokOr, tokEq, tokNeq, tokLt, tokLte, tokGt, tokGte,
 	} {
-		assert.True(t, Token{Type: ty}.IsOperator())
+		assert.True(t, token{Type: ty}.isOperator())
 	}
 }
 
 func TestTokenIsLogicalOperator(t *testing.T) {
-	for _, ty := range []TokenType{TokAnd, TokOr} {
-		assert.True(t, Token{Type: ty}.IsLogicalOperator())
+	for _, ty := range []tokenType{tokAnd, tokOr} {
+		assert.True(t, token{Type: ty}.isLogicalOperator())
 	}
 }
 
 func TestTokenIsComparisonOperator(t *testing.T) {
-	for _, ty := range []TokenType{
-		TokEq, TokNeq, TokLt, TokLte, TokGt, TokGte,
+	for _, ty := range []tokenType{
+		tokEq, tokNeq, tokLt, tokLte, tokGt, tokGte,
 	} {
 
-		assert.True(t, Token{Type: ty}.IsComparisonOperator())
+		assert.True(t, token{Type: ty}.isComparisonOperator())
 	}
 }
 
 func TestTokenTypeString(t *testing.T) {
-	for _, ty := range []TokenType{
-		TokField, TokInt, TokFloat, TokTrue, TokFalse, TokNull, TokSelect,
-		TokFrom, TokWhere, TokStarting, TokAt, TokAnd, TokOr, TokEq, TokNeq,
-		TokLt, TokLte, TokGt, TokGte, TokLeftParenthesis, TokRightParenthesis,
-		TokComma, TokEnd,
+	for _, ty := range []tokenType{
+		tokField, tokInt, tokFloat, tokTrue, tokFalse, tokNull, tokSelect,
+		tokFrom, tokWhere, tokStarting, tokAt, tokAnd, tokOr, tokEq, tokNeq,
+		tokLt, tokLte, tokGt, tokGte, tokLeftParenthesis, tokRightParenthesis,
+		tokComma, tokEnd,
 	} {
 		assert.NotEqual(t, "", ty.String())
 		assert.NotEqual(t, "UNKNOWN", ty.String())

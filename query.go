@@ -10,7 +10,7 @@ type Query struct {
 	from string
 	// the expression to evaluate on each record. The resulting constant will
 	// always be converted as a bool
-	expression Operand
+	expression operand
 	// the record index to start from
 	startingAt int64
 }
@@ -22,7 +22,7 @@ type Record interface {
 
 // QueryFromString creates a query from the given string
 func QueryFromString(s string) (*Query, error) {
-	return ParserFromString(s).Parse()
+	return parserFromString(s).Parse()
 }
 
 // NewQuery creates a new query with the given from part
@@ -60,8 +60,8 @@ func (q *Query) Fields() []*Field {
 	return q.fields
 }
 
-// SetWhere sets the where condition
-func (q *Query) SetWhere(op Operand) {
+// setWhere sets the where condition
+func (q *Query) setWhere(op operand) {
 
 	if op == nil {
 		return

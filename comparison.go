@@ -2,8 +2,8 @@ package charlatan
 
 import "fmt"
 
-// NewComparison creates a new Comparison from the given operands
-func NewComparison(left Operand, operator OperatorType, right Operand) (*Comparison, error) {
+// newComparison creates a new comparison from the given operands
+func newComparison(left operand, operator operatorType, right operand) (*comparison, error) {
 
 	if left == nil {
 		return nil, fmt.Errorf("Can't creates a new comparison with a nil left operand")
@@ -13,16 +13,16 @@ func NewComparison(left Operand, operator OperatorType, right Operand) (*Compari
 		return nil, fmt.Errorf("Can't creates a new comparison with a nil right operand")
 	}
 
-	if !operator.IsComparison() {
+	if !operator.isComparison() {
 		return nil, fmt.Errorf("The operator should be a comparison operator")
 	}
 
-	return &Comparison{left, operator, right}, nil
+	return &comparison{left, operator, right}, nil
 }
 
 // Evaluate evaluates the comparison against a given record and return the
 // resulting value
-func (c *Comparison) Evaluate(record Record) (*Const, error) {
+func (c *comparison) Evaluate(record Record) (*Const, error) {
 	var err error
 	var leftValue, rightValue *Const
 
@@ -42,23 +42,23 @@ func (c *Comparison) Evaluate(record Record) (*Const, error) {
 	}
 
 	switch c.operator {
-	case OperatorEq:
+	case operatorEq:
 		return BoolConst(r == 0), nil
-	case OperatorNeq:
+	case operatorNeq:
 		return BoolConst(r != 0), nil
-	case OperatorLt:
+	case operatorLt:
 		return BoolConst(r < 0), nil
-	case OperatorLte:
+	case operatorLte:
 		return BoolConst(r <= 0), nil
-	case OperatorGt:
+	case operatorGt:
 		return BoolConst(r > 0), nil
-	case OperatorGte:
+	case operatorGte:
 		return BoolConst(r >= 0), nil
 	}
 
 	return nil, fmt.Errorf("Unknown operator %s", c.operator)
 }
 
-func (c *Comparison) String() string {
+func (c *comparison) String() string {
 	return fmt.Sprintf("%s %s %s", c.left, c.operator, c.right)
 }

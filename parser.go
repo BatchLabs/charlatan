@@ -30,10 +30,10 @@ const (
 	end
 )
 
-// Parser is the parser itself
-type Parser struct {
+// parser is the parser itself
+type parser struct {
 	// the lexer to read tokens
-	lexer *Lexer
+	lexer *lexer
 	// the current state
 	state state
 
@@ -54,16 +54,16 @@ type Parser struct {
 // about the current operations
 type context struct {
 	// the current operation
-	left     Operand
-	operator TokenType
-	right    Operand
+	left     operand
+	operator tokenType
+	right    operand
 
 	// the logical operation nodes
-	first *LogicalOperation
-	last  *LogicalOperation
+	first *logicalOperation
+	last  *logicalOperation
 
 	// the current logical operator
-	logicalOperator TokenType
+	logicalOperator tokenType
 
 	// if stacked, in which state
 	// this context should be restored
@@ -71,10 +71,10 @@ type context struct {
 	stackState state
 }
 
-// ParserFromString creates a new parser from the given string
-func ParserFromString(s string) *Parser {
-	return &Parser{
-		LexerFromString(s),
+// parserFromString creates a new parser from the given string
+func parserFromString(s string) *parser {
+	return &parser{
+		lexerFromString(s),
 		initial,
 		make([]*Field, 0),
 		nil,
@@ -84,7 +84,7 @@ func ParserFromString(s string) *Parser {
 }
 
 // Parse parses and returns the query
-func (p *Parser) Parse() (*Query, error) {
+func (p *parser) Parse() (*Query, error) {
 
 	// Read tokens, move step by step
 	// until the next state is the end
@@ -153,25 +153,25 @@ func (p *Parser) Parse() (*Query, error) {
 	if p.current.first != nil {
 		// affect the logical node as the expression
 		// FIXME should we finish the operation ???
-		p.query.SetWhere(p.current.first.simplify())
+		p.query.setWhere(p.current.first.simplify())
 	}
 
 	return p.query, nil
 }
 
 // We’re only waiting for the SELECT keyword
-func (p *Parser) initialState(tok *Token) (state, error) {
-	if tok.Type != TokSelect {
-		return unexpected(tok, TokSelect)
+func (p *parser) initialState(tok *token) (state, error) {
+	if tok.Type != tokSelect {
+		return unexpected(tok, tokSelect)
 	}
 
 	return selectInitial, nil
 }
 
 // We’re waiting for a field
-func (p *Parser) selectState(tok *Token) (state, error) {
-	if tok.Type != TokField {
-		return unexpected(tok, TokField)
+func (p *parser) selectState(tok *token) (state, error) {
+	if tok.Type != tokField {
+		return unexpected(tok, tokField)
 	}
 
 	p.fields = append(p.fields, NewField(tok.Value))
@@ -180,23 +180,23 @@ func (p *Parser) selectState(tok *Token) (state, error) {
 }
 
 // We’re waiting for a comma, or the FROM keyword
-func (p *Parser) selectFieldState(tok *Token) (state, error) {
-	if tok.Type == TokComma {
+func (p *parser) selectFieldState(tok *token) (state, error) {
+	if tok.Type == tokComma {
 		// we just jump to the next field
 		return selectInitial, nil
 	}
 
-	if tok.Type != TokFrom {
-		return unexpected(tok, TokFrom)
+	if tok.Type != tokFrom {
+		return unexpected(tok, tokFrom)
 	}
 
 	return fromInitial, nil
 }
 
 // We’re waiting for a name of the from
-func (p *Parser) fromState(tok *Token) (state, error) {
-	if tok.Type != TokField {
-		return unexpected(tok, TokField)
+func (p *parser) fromState(tok *token) (state, error) {
+	if tok.Type != tokField {
+		return unexpected(tok, tokField)
 	}
 
 	p.query = NewQuery(tok.Value)
@@ -207,40 +207,40 @@ func (p *Parser) fromState(tok *Token) (state, error) {
 }
 
 // We’re waiting for the WHERE keyword, or the end, if there is no condition
-func (p *Parser) fromNameState(tok *Token) (state, error) {
-	if tok.Type == TokEnd {
+func (p *parser) fromNameState(tok *token) (state, error) {
+	if tok.Type == tokEnd {
 		return end, nil
 	}
 
-	if tok.Type == TokWhere {
+	if tok.Type == tokWhere {
 		return operationInitial, nil
 	}
 
-	if tok.Type == TokStarting {
+	if tok.Type == tokStarting {
 		return startingInitial, nil
 	}
 
-	return unexpected(tok, TokWhere)
+	return unexpected(tok, tokWhere)
 }
 
 // We’re waiting for a left operand, or a (
-func (p *Parser) operationState(tok *Token) (state, error) {
-	if tok.Type == TokLeftParenthesis {
+func (p *parser) operationState(tok *token) (state, error) {
+	if tok.Type == tokLeftParenthesis {
 		// push the context and start a new operation
 		p.pushContext(leftOperand)
 		return operationInitial, nil
 	}
 
-	if tok.IsField() {
+	if tok.isField() {
 		p.current.left = NewField(tok.Value)
-	} else if tok.IsConst() {
+	} else if tok.isConst() {
 		c, err := tok.Const()
 		if err != nil {
 			return invalidState, err
 		}
-		p.current.left = NewConstOperand(c)
+		p.current.left = newConstOperand(c)
 	} else {
-		return unexpected(tok, TokInvalid)
+		return unexpected(tok, tokInvalid)
 	}
 
 	// the left operand has been setted jump to the left operand state
@@ -252,9 +252,9 @@ func (p *Parser) operationState(tok *Token) (state, error) {
 //     - comparison operator, we continue to the operator state
 //
 // We can encounter a ), or the end
-func (p *Parser) operandLeftState(tok *Token) (state, error) {
+func (p *parser) operandLeftState(tok *token) (state, error) {
 
-	if tok.IsEnd() {
+	if tok.isEnd() {
 		// end the previous operation
 		if err := p.current.endOperation(); err != nil {
 			return invalidState, err
@@ -263,11 +263,11 @@ func (p *Parser) operandLeftState(tok *Token) (state, error) {
 		return end, nil
 	}
 
-	if tok.Type == TokStarting {
+	if tok.Type == tokStarting {
 		return startingInitial, nil
 	}
 
-	if tok.IsLogicalOperator() {
+	if tok.isLogicalOperator() {
 
 		// this is the end of the previous operation
 		if err := p.current.endOperation(); err != nil {
@@ -278,7 +278,7 @@ func (p *Parser) operandLeftState(tok *Token) (state, error) {
 		p.current.logicalOperator = tok.Type
 		return operationInitial, nil
 
-	} else if tok.IsComparisonOperator() {
+	} else if tok.isComparisonOperator() {
 
 		// set the operator and jump to the operator state
 		p.current.operator = tok.Type
@@ -286,34 +286,34 @@ func (p *Parser) operandLeftState(tok *Token) (state, error) {
 	}
 
 	// we close a context, pop it
-	if tok.Type == TokRightParenthesis {
+	if tok.Type == tokRightParenthesis {
 		return p.popContext()
 	}
 
-	return unexpected(tok, TokInvalid)
+	return unexpected(tok, tokInvalid)
 }
 
 // We're waiting for a right operand, nothing else, or a (
-func (p *Parser) operatorState(tok *Token) (state, error) {
+func (p *parser) operatorState(tok *token) (state, error) {
 
 	// handle the (
-	if tok.Type == TokLeftParenthesis {
+	if tok.Type == tokLeftParenthesis {
 		// we push the state
 		p.pushContext(rightOperand)
 		// jump the the start of an operation
 		return operationInitial, nil
 	}
 
-	if tok.IsField() {
+	if tok.isField() {
 		p.current.right = NewField(tok.Value)
-	} else if tok.IsConst() {
+	} else if tok.isConst() {
 		c, err := tok.Const()
 		if err != nil {
 			return invalidState, err
 		}
-		p.current.right = NewConstOperand(c)
+		p.current.right = newConstOperand(c)
 	} else {
-		return unexpected(tok, TokInvalid)
+		return unexpected(tok, tokInvalid)
 	}
 
 	// the right operand has been setted jump to the left operand state
@@ -321,12 +321,12 @@ func (p *Parser) operatorState(tok *Token) (state, error) {
 }
 
 // We're waiting for a logical operator, ), or the end
-func (p *Parser) operandRightState(tok *Token) (state, error) {
+func (p *parser) operandRightState(tok *token) (state, error) {
 
 	// end of a context
 	// we pop, and continue to the correct state
 	// (the pop will handle the end of the operation)
-	if tok.Type == TokRightParenthesis {
+	if tok.Type == tokRightParenthesis {
 		return p.popContext()
 	}
 
@@ -335,36 +335,36 @@ func (p *Parser) operandRightState(tok *Token) (state, error) {
 		return invalidState, err
 	}
 
-	if tok.Type == TokStarting {
+	if tok.Type == tokStarting {
 		return startingInitial, nil
 	}
 
 	// the end of the expression
-	if tok.IsEnd() {
+	if tok.isEnd() {
 		return end, nil
 	}
 
 	// we continue to chain
-	if tok.IsLogicalOperator() {
+	if tok.isLogicalOperator() {
 
 		// set this operator and jump to a new operation
 		p.current.logicalOperator = tok.Type
 		return operationInitial, nil
 	}
 
-	return unexpected(tok, TokInvalid)
+	return unexpected(tok, tokInvalid)
 }
 
-func (p *Parser) startingInitial(tok *Token) (state, error) {
-	if tok.Type == TokAt {
+func (p *parser) startingInitial(tok *token) (state, error) {
+	if tok.Type == tokAt {
 		return startingAt, nil
 	}
-	return unexpected(tok, TokAt)
+	return unexpected(tok, tokAt)
 }
 
-func (p *Parser) startingAt(tok *Token) (state, error) {
+func (p *parser) startingAt(tok *token) (state, error) {
 
-	if tok.IsNumeric() {
+	if tok.isNumeric() {
 		c, err := tok.Const()
 		if err != nil {
 			return invalidState, err
@@ -375,19 +375,19 @@ func (p *Parser) startingAt(tok *Token) (state, error) {
 		return beforeEnd, nil
 	}
 
-	return unexpected(tok, TokInt)
+	return unexpected(tok, tokInt)
 }
 
-func (p *Parser) beforeEnd(tok *Token) (state, error) {
-	if tok.IsEnd() {
+func (p *parser) beforeEnd(tok *token) (state, error) {
+	if tok.isEnd() {
 		return end, nil
 	}
 
-	return unexpected(tok, TokEnd)
+	return unexpected(tok, tokEnd)
 }
 
 // Push the context and create a new one
-func (p *Parser) pushContext(state state) {
+func (p *parser) pushContext(state state) {
 	// stack the context
 	p.current.stackState = state
 	p.stack = append(p.stack, p.current)
@@ -397,7 +397,7 @@ func (p *Parser) pushContext(state state) {
 }
 
 // End the current operation, and continue to the correct state (given on push)
-func (p *Parser) popContext() (state, error) {
+func (p *parser) popContext() (state, error) {
 
 	// first we end the operation
 	if err := p.current.endOperation(); err != nil {
@@ -405,7 +405,7 @@ func (p *Parser) popContext() (state, error) {
 	}
 
 	// creates a group operand
-	g, err := NewGroupOperand(p.current.first.simplify())
+	g, err := newGroupOperand(p.current.first.simplify())
 	if err != nil {
 		return invalidState, err
 	}
@@ -434,8 +434,8 @@ func (p *Parser) popContext() (state, error) {
 // Creates a new and fresh context
 func newContext() *context {
 	return &context{
-		operator:        TokInvalid,
-		logicalOperator: TokInvalid,
+		operator:        tokInvalid,
+		logicalOperator: tokInvalid,
 		stackState:      invalidState,
 	}
 }
@@ -450,11 +450,11 @@ func (c *context) endOperation() error {
 
 	// Creates the operand
 
-	var op Operand
+	var op operand
 	var err error
 
-	if c.operator != TokInvalid {
-		op, err = NewComparison(c.left, OperatorTypeFromTokenType(c.operator), c.right)
+	if c.operator != tokInvalid {
+		op, err = newComparison(c.left, operatorTypeFromTokenType(c.operator), c.right)
 		if err != nil {
 			return err
 		}
@@ -465,16 +465,16 @@ func (c *context) endOperation() error {
 	// reset the operation
 	c.left = nil
 	c.right = nil
-	c.operator = TokInvalid
+	c.operator = tokInvalid
 
 	// Creates a simple logical operation and chain it
 
-	lo, err := newLogicalOperation(op)
+	lo, err := newLeftLogicalOperation(op)
 	if err != nil {
 		return err
 	}
 
-	if c.logicalOperator == TokInvalid {
+	if c.logicalOperator == tokInvalid {
 
 		if c.first != nil || c.last != nil {
 			return fmt.Errorf("Unexpected state, the logical operations should be not initialized")
@@ -492,31 +492,31 @@ func (c *context) endOperation() error {
 
 	// define how to chain according the logical operator
 	switch c.logicalOperator {
-	case TokAnd:
-		c.last.chain(OperatorTypeFromTokenType(c.logicalOperator), lo)
+	case tokAnd:
+		c.last.chain(operatorTypeFromTokenType(c.logicalOperator), lo)
 		c.last = lo
-	case TokOr:
-		c.first, err = newLogicalOperation(c.first)
+	case tokOr:
+		c.first, err = newLeftLogicalOperation(c.first)
 		if err != nil {
 			return err
 		}
 
-		c.first.chain(OperatorTypeFromTokenType(c.logicalOperator), lo)
+		c.first.chain(operatorTypeFromTokenType(c.logicalOperator), lo)
 		c.last = lo
 	}
 
 	// reset the logical operator
-	c.logicalOperator = TokInvalid
+	c.logicalOperator = tokInvalid
 
 	return nil
 }
 
 // Helper to creates the unexpected error
-func unexpected(tok *Token, expected TokenType) (state, error) {
+func unexpected(tok *token, expected tokenType) (state, error) {
 
-	if expected != TokInvalid {
+	if expected != tokInvalid {
 
-		if tok.IsEnd() {
+		if tok.isEnd() {
 			return invalidState, fmt.Errorf(
 				"Expected '%s' at position %d, got end of stream",
 				expected, tok.Pos)
@@ -527,7 +527,7 @@ func unexpected(tok *Token, expected TokenType) (state, error) {
 			expected, tok.Pos, tok.Value)
 	}
 
-	if tok.IsEnd() {
+	if tok.isEnd() {
 		return invalidState, fmt.Errorf(
 			"Unexpected end of stream at pos %d", tok.Pos)
 	}

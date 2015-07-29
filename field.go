@@ -1,7 +1,7 @@
 package charlatan
 
 // Field is a field, contained into the SELECT part and the condition.
-// A field is an Operand, it can return the value extracted into the Record.
+// A field is an operand, it can return the value extracted into the Record.
 type Field struct {
 	name string
 }

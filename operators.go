@@ -1,74 +1,74 @@
 package charlatan
 
-// OperatorType is the type of an operator
-type OperatorType int
+// operatorType is the type of an operator
+type operatorType int
 
-// Operators can be either logical or comparison-al
+// operators can be either logical or comparison-al
 const (
-	OperatorInvalid OperatorType = iota
+	operatorInvalid operatorType = iota
 
-	OperatorAnd
-	OperatorOr
+	operatorAnd
+	operatorOr
 
-	OperatorEq
-	OperatorNeq
-	OperatorLt
-	OperatorLte
-	OperatorGt
-	OperatorGte
+	operatorEq
+	operatorNeq
+	operatorLt
+	operatorLte
+	operatorGt
+	operatorGte
 )
 
-// OperatorTypeFromTokenType converts a TokenType to an OperatorType
-func OperatorTypeFromTokenType(ty TokenType) OperatorType {
+// operatorTypeFromTokenType converts a TokenType to an operatorType
+func operatorTypeFromTokenType(ty tokenType) operatorType {
 	switch ty {
-	case TokAnd:
-		return OperatorAnd
-	case TokOr:
-		return OperatorOr
-	case TokEq:
-		return OperatorEq
-	case TokNeq:
-		return OperatorNeq
-	case TokLt:
-		return OperatorLt
-	case TokLte:
-		return OperatorLte
-	case TokGt:
-		return OperatorGt
-	case TokGte:
-		return OperatorGte
+	case tokAnd:
+		return operatorAnd
+	case tokOr:
+		return operatorOr
+	case tokEq:
+		return operatorEq
+	case tokNeq:
+		return operatorNeq
+	case tokLt:
+		return operatorLt
+	case tokLte:
+		return operatorLte
+	case tokGt:
+		return operatorGt
+	case tokGte:
+		return operatorGte
 	default:
-		return OperatorInvalid
+		return operatorInvalid
 	}
 }
 
 // IsLogical tests if an operator is logical
-func (o OperatorType) IsLogical() bool {
-	return o == OperatorAnd || o == OperatorOr
+func (o operatorType) IsLogical() bool {
+	return o == operatorAnd || o == operatorOr
 }
 
-// IsComparison tests if an operator is a comparison
-func (o OperatorType) IsComparison() bool {
-	return !o.IsLogical() && o != OperatorInvalid
+// isComparison tests if an operator is a comparison
+func (o operatorType) isComparison() bool {
+	return !o.IsLogical() && o != operatorInvalid
 }
 
-func (o OperatorType) String() string {
+func (o operatorType) String() string {
 	switch o {
-	case OperatorAnd:
+	case operatorAnd:
 		return "&&"
-	case OperatorOr:
+	case operatorOr:
 		return "||"
-	case OperatorEq:
+	case operatorEq:
 		return "="
-	case OperatorNeq:
+	case operatorNeq:
 		return "!="
-	case OperatorLt:
+	case operatorLt:
 		return "<"
-	case OperatorLte:
+	case operatorLte:
 		return "<="
-	case OperatorGt:
+	case operatorGt:
 		return ">"
-	case OperatorGte:
+	case operatorGte:
 		return ">="
 	default:
 		return "<unknown operator>"

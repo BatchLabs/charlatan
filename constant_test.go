@@ -180,9 +180,9 @@ func TestConstFromStringString(t *testing.T) {
 }
 
 func TestConstGetType(t *testing.T) {
-	assert.Equal(t, ConstNull, NullConst().GetType())
-	assert.Equal(t, ConstInt, IntConst(42).GetType())
-	assert.Equal(t, ConstFloat, FloatConst(1.0).GetType())
+	assert.Equal(t, constNull, NullConst().GetType())
+	assert.Equal(t, constInt, IntConst(42).GetType())
+	assert.Equal(t, constFloat, FloatConst(1.0).GetType())
 }
 
 func TestConstValue(t *testing.T) {
@@ -297,8 +297,8 @@ func TestConstCompareToDifferentTypes(t *testing.T) {
 }
 
 func TestConstTypeString(t *testing.T) {
-	for _, ty := range []ConstType{
-		ConstNull, ConstInt, ConstFloat, ConstBool, ConstString,
+	for _, ty := range []constType{
+		constNull, constInt, constFloat, constBool, constString,
 	} {
 		assert.NotEqual(t, "", ty.String())
 		assert.NotEqual(t, "UNDEFINED", ty.String())

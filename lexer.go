@@ -10,29 +10,29 @@ import (
 	"unicode"
 )
 
-// Lexer is a lexer
-type Lexer struct {
+// lexer is a lexer
+type lexer struct {
 	r     *bufio.Reader
 	index int
 }
 
-// LexerFromString creates a new lexer from the given string
-func LexerFromString(s string) *Lexer {
-	return &Lexer{r: bufio.NewReader(strings.NewReader(s))}
+// lexerFromString creates a new lexer from the given string
+func lexerFromString(s string) *lexer {
+	return &lexer{r: bufio.NewReader(strings.NewReader(s))}
 }
 
-func (l *Lexer) readRune() (rune, error) {
+func (l *lexer) readRune() (rune, error) {
 	l.index++
 	r, _, err := l.r.ReadRune()
 	return r, err
 }
 
-func (l *Lexer) unread() error {
+func (l *lexer) unread() error {
 	l.index--
 	return l.r.UnreadRune()
 }
 
-func (l *Lexer) skipWhiteSpaces() error {
+func (l *lexer) skipWhiteSpaces() error {
 	for {
 		r, err := l.readRune()
 		if err != nil {
@@ -47,7 +47,7 @@ func (l *Lexer) skipWhiteSpaces() error {
 }
 
 // NextToken readss the next token and returns it
-func (l *Lexer) NextToken() (*Token, error) {
+func (l *lexer) NextToken() (*token, error) {
 	if err := l.skipWhiteSpaces(); err != nil {
 		if err == io.EOF {
 			return l.eof()
@@ -81,11 +81,11 @@ func (l *Lexer) NextToken() (*Token, error) {
 		// "foo" or 'foo'
 		return l.str(v, index)
 	case '(':
-		return l.simpleToken(TokLeftParenthesis, index)
+		return l.simpleToken(tokLeftParenthesis, index)
 	case ')':
-		return l.simpleToken(TokRightParenthesis, index)
+		return l.simpleToken(tokRightParenthesis, index)
 	case ',':
-		return l.simpleToken(TokComma, index)
+		return l.simpleToken(tokComma, index)
 	}
 
 	if err := l.unread(); err != nil {
@@ -101,41 +101,41 @@ func (l *Lexer) NextToken() (*Token, error) {
 	// keywords
 	switch k := strings.ToUpper(w); k {
 	case "SELECT":
-		return l.token(TokSelect, k, index)
+		return l.token(tokSelect, k, index)
 	case "FROM":
-		return l.token(TokFrom, k, index)
+		return l.token(tokFrom, k, index)
 	case "WHERE":
-		return l.token(TokWhere, k, index)
+		return l.token(tokWhere, k, index)
 	case "STARTING":
-		return l.token(TokStarting, k, index)
+		return l.token(tokStarting, k, index)
 	case "AT":
-		return l.token(TokAt, k, index)
+		return l.token(tokAt, k, index)
 	case "AND":
-		return l.token(TokAnd, k, index)
+		return l.token(tokAnd, k, index)
 	case "OR":
-		return l.token(TokOr, k, index)
+		return l.token(tokOr, k, index)
 	}
 
 	// special values
 	switch w {
 	case "true":
-		return l.token(TokTrue, "true", index)
+		return l.token(tokTrue, "true", index)
 	case "false":
-		return l.token(TokFalse, "false", index)
+		return l.token(tokFalse, "false", index)
 	case "null", "NULL":
-		return l.token(TokNull, "null", index)
+		return l.token(tokNull, "null", index)
 	}
 
 	if _, err := strconv.ParseInt(w, 10, 64); err == nil {
-		return l.token(TokInt, w, index)
+		return l.token(tokInt, w, index)
 	}
 
 	if _, err := strconv.ParseFloat(w, 10); err == nil {
-		return l.token(TokFloat, w, index)
+		return l.token(tokFloat, w, index)
 	}
 
 	if w != "" {
-		return l.token(TokField, w, index)
+		return l.token(tokField, w, index)
 	}
 
 	// operators
@@ -147,21 +147,21 @@ func (l *Lexer) NextToken() (*Token, error) {
 
 	switch op {
 	case "=":
-		return l.token(TokEq, op, index)
+		return l.token(tokEq, op, index)
 	case "!=":
-		return l.token(TokNeq, op, index)
+		return l.token(tokNeq, op, index)
 	case "<":
-		return l.token(TokLt, op, index)
+		return l.token(tokLt, op, index)
 	case ">":
-		return l.token(TokGt, op, index)
+		return l.token(tokGt, op, index)
 	case "<=":
-		return l.token(TokLte, op, index)
+		return l.token(tokLte, op, index)
 	case ">=":
-		return l.token(TokGte, op, index)
+		return l.token(tokGte, op, index)
 	case "&&":
-		return l.token(TokAnd, op, index)
+		return l.token(tokAnd, op, index)
 	case "||":
-		return l.token(TokOr, op, index)
+		return l.token(tokOr, op, index)
 	}
 
 	if op != "" {
@@ -171,27 +171,27 @@ func (l *Lexer) NextToken() (*Token, error) {
 	return nil, fmt.Errorf("No known alternative at input %d", index)
 }
 
-func (l *Lexer) token(typ TokenType, v string, index int) (*Token, error) {
-	return &Token{Type: typ, Value: v, Pos: index}, nil
+func (l *lexer) token(typ tokenType, v string, index int) (*token, error) {
+	return &token{Type: typ, Value: v, Pos: index}, nil
 }
 
-func (l *Lexer) eof() (*Token, error) {
-	return l.token(TokEnd, "", l.index)
+func (l *lexer) eof() (*token, error) {
+	return l.token(tokEnd, "", l.index)
 }
 
-func (l *Lexer) field(v string, index int) (*Token, error) {
-	return l.token(TokField, v, index)
+func (l *lexer) field(v string, index int) (*token, error) {
+	return l.token(tokField, v, index)
 }
 
-func (l *Lexer) str(v string, index int) (*Token, error) {
-	return l.token(TokString, v, index)
+func (l *lexer) str(v string, index int) (*token, error) {
+	return l.token(tokString, v, index)
 }
 
-func (l *Lexer) simpleToken(typ TokenType, index int) (*Token, error) {
+func (l *lexer) simpleToken(typ tokenType, index int) (*token, error) {
 	return l.token(typ, "", index)
 }
 
-func (l *Lexer) readUntil(delim rune) (string, error) {
+func (l *lexer) readUntil(delim rune) (string, error) {
 	var buf bytes.Buffer
 
 	for {
@@ -211,10 +211,10 @@ func (l *Lexer) readUntil(delim rune) (string, error) {
 	return buf.String(), nil
 }
 
-func (l *Lexer) readWord() (string, error)     { return l.readWhile(isWordRune) }
-func (l *Lexer) readOperator() (string, error) { return l.readWhile(isOperatorRune) }
+func (l *lexer) readWord() (string, error)     { return l.readWhile(isWordRune) }
+func (l *lexer) readOperator() (string, error) { return l.readWhile(isOperatorRune) }
 
-func (l *Lexer) readWhile(cond func(rune) bool) (string, error) {
+func (l *lexer) readWhile(cond func(rune) bool) (string, error) {
 	var buf bytes.Buffer
 
 	for {
