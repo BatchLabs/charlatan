@@ -22,7 +22,7 @@ const (
 	tokWhere    // WHERE
 	tokStarting // STARTING
 	tokAt       // AT
-	tokIn       // IN
+	tokBetween  // BETWEEN
 	tokKeywordEnd
 
 	// operators
@@ -56,9 +56,6 @@ const (
 	tokLeftParenthesis  // (
 	tokRightParenthesis // )
 	tokComma            // ,
-
-	tokLeftSquareBracket  // [
-	tokRightSquareBracket // ]
 
 	// tokEnd is the end token
 	tokEnd = -1
@@ -160,8 +157,8 @@ func (t tokenType) String() string {
 		return "And"
 	case tokOr:
 		return "Or"
-	case tokIn:
-		return "In"
+	case tokBetween:
+		return "Between"
 	case tokEq:
 		return "Eq"
 	case tokNeq:
@@ -180,10 +177,6 @@ func (t tokenType) String() string {
 		return "tokRightParenthesis"
 	case tokComma:
 		return "Comma"
-	case tokLeftSquareBracket:
-		return "tokLeftSquareBracket"
-	case tokRightSquareBracket:
-		return "tokRightSquareBracket"
 	}
 
 	return "UNKNOWN"

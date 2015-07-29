@@ -27,11 +27,9 @@ const (
 	startingInitial
 	startingAt
 
-	rangeInitial
-	rangeLeft
-	rangeComma
-	rangeRight
-	rangeEnd
+	rangeMin
+	rangeAnd
+	rangeMax
 
 	beforeEnd
 	end
@@ -134,16 +132,12 @@ func (p *parser) Parse() (*Query, error) {
 			p.state, err = p.operandRightState(tok)
 
 			// range
-		case rangeInitial:
-			p.state, err = p.expect(tokLeftSquareBracket, tok, rangeLeft)
-		case rangeLeft:
-			p.state, err = p.rangeLeft(tok)
-		case rangeComma:
-			p.state, err = p.expect(tokComma, tok, rangeRight)
-		case rangeRight:
-			p.state, err = p.rangeRight(tok)
-		case rangeEnd:
-			p.state, err = p.expect(tokRightSquareBracket, tok, rightOperand)
+		case rangeMin:
+			p.state, err = p.rangeMin(tok)
+		case rangeAnd:
+			p.state, err = p.expect(tokAnd, tok, rangeMax)
+		case rangeMax:
+			p.state, err = p.rangeMax(tok)
 
 		// STARTING
 		case startingInitial:
@@ -276,7 +270,7 @@ func (p *parser) operationState(tok *token) (state, error) {
 // We’re waiting for an operator:
 //     - logical operator, we step to the next operation
 //     - comparison operator, we continue to the operator state
-//     - "IN", we continue to the range operator state
+//     - "BETWEEN", we continue to the range operator state
 //
 // We can encounter a ), or the end
 func (p *parser) operandLeftState(tok *token) (state, error) {
@@ -319,19 +313,19 @@ func (p *parser) operandLeftState(tok *token) (state, error) {
 		return p.popContext()
 	}
 
-	if tok.Type == tokIn {
+	if tok.Type == tokBetween {
 		p.current.rangeTest = &rangeTestOperation{
 			test: p.current.left,
 		}
 		p.current.left = p.current.rangeTest
 
-		return rangeInitial, nil
+		return rangeMin, nil
 	}
 
 	return unexpected(tok, tokInvalid)
 }
 
-func (p *parser) rangeLeft(tok *token) (state, error) {
+func (p *parser) rangeMin(tok *token) (state, error) {
 	c, err := tok2operand(tok)
 	if err != nil {
 		return invalidState, err
@@ -343,10 +337,10 @@ func (p *parser) rangeLeft(tok *token) (state, error) {
 
 	p.current.rangeTest.min = c
 
-	return rangeComma, nil
+	return rangeAnd, nil
 }
 
-func (p *parser) rangeRight(tok *token) (state, error) {
+func (p *parser) rangeMax(tok *token) (state, error) {
 	c, err := tok2operand(tok)
 	if err != nil {
 		return invalidState, err
@@ -358,7 +352,7 @@ func (p *parser) rangeRight(tok *token) (state, error) {
 
 	p.current.rangeTest.max = c
 
-	return rangeEnd, nil
+	return rightOperand, nil
 }
 
 // We're waiting for a right operand, nothing else, or a (

@@ -48,11 +48,13 @@ func TestLexerOperators(t *testing.T) {
 		"1 || 2":  tokOr,
 		"1 AND 2": tokAnd,
 		"1 && 2":  tokAnd,
-		"1 IN 2":  tokIn,
 	} {
 		l := lexerFromString(s)
 		assertNextTokens(t, l, tokInt, tokType, tokInt, tokEnd)
 	}
+
+	l := lexerFromString("1 BETWEEN 2 AND 3")
+	assertNextTokens(t, l, tokInt, tokBetween, tokInt, tokAnd, tokInt, tokEnd)
 }
 
 func TestLexerStringDoubleQuotes(t *testing.T) {

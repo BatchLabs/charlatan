@@ -54,8 +54,8 @@ func TestQueryInRange(t *testing.T) {
 }
 
 func TestQueryFromStringInRange(t *testing.T) {
-	q, err := QueryFromString("SELECT a FROM b WHERE a IN [1, 2]")
-	assert.Nil(t, err)
+	q, err := QueryFromString("SELECT a FROM b WHERE a BETWEEN 1 AND 2")
+	require.Nil(t, err)
 	assert.NotNil(t, q)
 	assert.NotNil(t, q.fields)
 	assert.NotNil(t, q.expression)

@@ -21,7 +21,7 @@ expression = value
            / "(" *SP expression *SP ")"
            / "(" *SP expression operator expression *SP ")"
 
-range-test = value 1*SP "IN" 1*SP "[" *SP value *SP "," *SP value *SP "]"
+range-test = value 1*SP "BETWEEN" 1*SP value 1*SP "AND" 1*SP value
 
 operator = *SP comp-operator *SP
          / 1*SP bool-operator 1*SP

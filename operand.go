@@ -212,5 +212,5 @@ func (rg *rangeTestOperation) Evaluate(record Record) (*Const, error) {
 }
 
 func (rg *rangeTestOperation) String() string {
-	return fmt.Sprintf("%s IN [%s, %s]", rg.test, rg.min, rg.max)
+	return fmt.Sprintf("%s BETWEEN %s AND %s", rg.test, rg.min, rg.max)
 }

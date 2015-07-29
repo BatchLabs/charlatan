@@ -84,10 +84,6 @@ func (l *lexer) NextToken() (*token, error) {
 		return l.simpleToken(tokLeftParenthesis, index)
 	case ')':
 		return l.simpleToken(tokRightParenthesis, index)
-	case '[':
-		return l.simpleToken(tokLeftSquareBracket, index)
-	case ']':
-		return l.simpleToken(tokRightSquareBracket, index)
 	case ',':
 		return l.simpleToken(tokComma, index)
 	}
@@ -118,8 +114,8 @@ func (l *lexer) NextToken() (*token, error) {
 		return l.token(tokAnd, k, index)
 	case "OR":
 		return l.token(tokOr, k, index)
-	case "IN":
-		return l.token(tokIn, k, index)
+	case "BETWEEN":
+		return l.token(tokBetween, k, index)
 	}
 
 	// special values
