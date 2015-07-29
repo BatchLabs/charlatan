@@ -56,7 +56,7 @@ func TestTokenTypeString(t *testing.T) {
 		tokField, tokInt, tokFloat, tokTrue, tokFalse, tokNull, tokSelect,
 		tokFrom, tokWhere, tokStarting, tokAt, tokAnd, tokOr, tokEq, tokNeq,
 		tokLt, tokLte, tokGt, tokGte, tokLeftParenthesis, tokRightParenthesis,
-		tokComma, tokEnd,
+		tokComma, tokLeftSquareBracket, tokRightSquareBracket, tokIn, tokEnd,
 	} {
 		assert.NotEqual(t, "", ty.String())
 		assert.NotEqual(t, "UNKNOWN", ty.String())
