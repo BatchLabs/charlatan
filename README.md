@@ -148,7 +148,7 @@ Two examples are included in the repository under `sample/csv/` and
 
 ### Authors
 
-- Nicolas DOUILLET
-- Vincent RISCHMANN
-- Baptiste FONTAINE
+- [Nicolas DOUILLET](https://github.com/minimarcel)
+- [Vincent RISCHMANN](https://github.com/vrischmann)
+- [Baptiste FONTAINE](https://github.com/bfontaine)
 
