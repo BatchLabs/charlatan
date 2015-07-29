@@ -24,7 +24,8 @@ SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ]
   `WHERE 1`), a field (e.g. `WHERE archived`) or any operation using comparison
   operators (`=`, `!=`, `<`, `<=`, `>`, `>=`, `AND`, `OR`) and optionally
   parentheses (e.g. `WHERE (foo > 2) AND (bar = "yo")`). The parser allows to
-  use `&&` instead of `AND` and `||` instead of `OR`.
+  use `&&` instead of `AND` and `||` instead of `OR`. It also support inclusive
+  range tests, like `WHERE age IN [20, 30]`.
 - `<index>` can be used to skip the first N records.
 
 Constant values include strings, integers, floats, booleans and the `null`
@@ -35,6 +36,7 @@ value.
 ```sql
 SELECT CountryName FROM sample/csv/population.csv WHERE Year = 2010 AND Value > 50000000 AND Value < 70000000
 SELECT name, age FROM sample/json/people.jsons WHERE stats.walking > 30 AND stats.biking < 300
+SELECT name, age FROM sample/json/people.jsons WHERE stats.walking IN [20, 100]
 ```
 
 ## API
