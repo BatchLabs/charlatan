@@ -137,11 +137,6 @@ func parseBool(s string) (bool, error) {
 	}
 }
 
-// GetType returns the type of a const
-func (c Const) GetType() constType {
-	return c.constType
-}
-
 // IsNumeric tests if a const has a numeric type (int or float)
 func (c Const) IsNumeric() bool {
 	return c.constType == constInt || c.constType == constFloat

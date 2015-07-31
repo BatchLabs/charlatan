@@ -39,22 +39,6 @@ type groupOperand struct {
 	operand operand
 }
 
-// newLogicalOperation creates a new logicial operation from the given operator
-// and operands
-func newLogicalOperation(left operand, operator operatorType, right operand) (*logicalOperation, error) {
-
-	o, err := newLeftLogicalOperation(left)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := o.chain(operator, right); err != nil {
-		return nil, err
-	}
-
-	return o, nil
-}
-
 // A constructor with the left operand only
 func newLeftLogicalOperation(left operand) (*logicalOperation, error) {
 
@@ -159,21 +143,6 @@ func (o *groupOperand) Evaluate(record Record) (*Const, error) {
 
 func (o *groupOperand) String() string {
 	return fmt.Sprintf("(%s)", o.operand)
-}
-
-func newRangeTestOperand(test, left, right operand) (*rangeTestOperation, error) {
-	if test == nil {
-		return nil, errors.New("Can't create a range with a nil test operand")
-	}
-
-	if left == nil {
-		return nil, errors.New("Can't create a range with a nil left operand")
-	}
-	if right == nil {
-		return nil, errors.New("Can't create a range with a nil right operand")
-	}
-
-	return &rangeTestOperation{min: left, max: right, test: test}, nil
 }
 
 func (rg *rangeTestOperation) Evaluate(record Record) (*Const, error) {

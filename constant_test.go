@@ -179,12 +179,6 @@ func TestConstFromStringString(t *testing.T) {
 	assert.Equal(t, "[]", c.AsString())
 }
 
-func TestConstGetType(t *testing.T) {
-	assert.Equal(t, constNull, NullConst().GetType())
-	assert.Equal(t, constInt, IntConst(42).GetType())
-	assert.Equal(t, constFloat, FloatConst(1.0).GetType())
-}
-
 func TestConstValue(t *testing.T) {
 	assert.Nil(t, NullConst().Value())
 
