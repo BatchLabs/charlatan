@@ -41,7 +41,7 @@ func executeRequest(reader *csv.Reader, query *charlatan.Query) {
 	fmt.Println("$ ", query)
 	fmt.Println("$")
 
-	var header *[]string
+	var header []string
 	line := 0
 
 	for {
@@ -61,7 +61,7 @@ func executeRequest(reader *csv.Reader, query *charlatan.Query) {
 
 		// set the header
 		if header == nil {
-			header = &records
+			header = records
 			continue
 		}
 
