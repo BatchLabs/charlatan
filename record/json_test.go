@@ -123,7 +123,7 @@ func TestFindDeepStringField(t *testing.T) {
 	assert.Equal(t, int64(1), c.AsInt())
 }
 
-func TestJSONReaderMultipleRecords(t *testing.T) {
+func TestJSONDecoderMultipleRecords(t *testing.T) {
 	r := json.NewDecoder(strings.NewReader(`
 	{"age": 42}
 	{"age": 19}
@@ -140,7 +140,7 @@ func TestJSONReaderMultipleRecords(t *testing.T) {
 	assert.Equal(t, io.EOF, err)
 }
 
-func TestJSONReaderSelectStar(t *testing.T) {
+func TestJSONRecordSelectStar(t *testing.T) {
 	r := json.NewDecoder(strings.NewReader(`{"foo": 42}`))
 	require.NotNil(t, r)
 
@@ -154,4 +154,50 @@ func TestJSONReaderSelectStar(t *testing.T) {
 
 	require.True(t, all.IsString())
 	require.Equal(t, `{"foo":42}`, all.AsString())
+}
+
+func TestJSONRecordTopLevelSoftFind(t *testing.T) {
+	rec, err := NewJSONRecordFromDecoder(json.NewDecoder(strings.NewReader(`{"foo":42}`)))
+	require.Nil(t, err)
+	require.NotNil(t, rec)
+
+	_, err = rec.Find(ch.NewField("yo"))
+	assert.NotNil(t, err)
+
+	rec.SoftMatching = true
+	v, err := rec.Find(ch.NewField("yo"))
+	assert.Nil(t, err)
+	assert.True(t, v.IsNull())
+}
+
+func TestJSONRecordSoftFindNotAnObject(t *testing.T) {
+	rec, err := NewJSONRecordFromDecoder(json.NewDecoder(strings.NewReader(`{"foo":42}`)))
+	require.Nil(t, err)
+	require.NotNil(t, rec)
+
+	_, err = rec.Find(ch.NewField("foo.bar.qux"))
+	assert.NotNil(t, err)
+
+	rec.SoftMatching = true
+	v, err := rec.Find(ch.NewField("foo.bar.qux"))
+	assert.Nil(t, err)
+	require.NotNil(t, v)
+	assert.True(t, v.IsNull())
+}
+
+func TestJSONRecordSoftFind(t *testing.T) {
+	rec, err := NewJSONRecordFromDecoder(json.NewDecoder(strings.NewReader(`
+		{"foo": {"a": 2}}
+	`)))
+	require.Nil(t, err)
+	require.NotNil(t, rec)
+
+	_, err = rec.Find(ch.NewField("foo.bar.qux"))
+	assert.NotNil(t, err)
+
+	rec.SoftMatching = true
+	v, err := rec.Find(ch.NewField("foo.bar.qux"))
+	assert.Nil(t, err)
+	require.NotNil(t, v)
+	assert.True(t, v.IsNull())
 }

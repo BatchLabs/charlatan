@@ -13,8 +13,12 @@ import (
 //
 // It supports the special field "*", as in "SELECT * FROM x WHERE y", which
 // returns the JSON as-is, except that the keys order is not garanteed.
+//
+// If the SoftMatching attribute is set to true, non-existing fields are
+// returned as null contants instead of failing with an error.
 type JSONRecord struct {
-	attrs map[string]*json.RawMessage
+	attrs        map[string]*json.RawMessage
+	SoftMatching bool
 }
 
 var _ ch.Record = &JSONRecord{}
@@ -58,6 +62,10 @@ func (r *JSONRecord) Find(field *ch.Field) (*ch.Const, error) {
 		partial, ok = attrs[k]
 
 		if !ok {
+			if r.SoftMatching {
+				return ch.NullConst(), nil
+			}
+
 			return nil, fmt.Errorf("Unknown '%s' field (in '%s')", k, field.Name())
 		}
 
@@ -65,6 +73,9 @@ func (r *JSONRecord) Find(field *ch.Field) (*ch.Const, error) {
 		if i < len(parts)-1 {
 			attrs = make(map[string]*json.RawMessage)
 			if err := json.Unmarshal(*partial, &attrs); err != nil {
+				if r.SoftMatching {
+					return ch.NullConst(), nil
+				}
 				return nil, err
 			}
 		}
