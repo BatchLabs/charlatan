@@ -9,22 +9,19 @@ import (
 
 // CSVRecord is a CSV record, i.e. a line from a CSV file
 type CSVRecord struct {
-	// the record
-	record []string
-	// the headers, if any
-	header *[]string
+	header, record []string
 }
 
 var _ ch.Record = &CSVRecord{}
 
 // NewCSVRecord returns a new CSVRecord
 func NewCSVRecord(record []string) *CSVRecord {
-	return &CSVRecord{record, nil}
+	return &CSVRecord{record: record}
 }
 
-// NewCSVRecordWithHeader returns a new CSVRecord
-func NewCSVRecordWithHeader(record []string, header *[]string) *CSVRecord {
-	return &CSVRecord{record, header}
+// NewCSVRecordWithHeader returns a new CSVRecord with the given header
+func NewCSVRecordWithHeader(record []string, header []string) *CSVRecord {
+	return &CSVRecord{header: header, record: record}
 }
 
 // Find implements the charlatan.Record interface
@@ -38,7 +35,7 @@ func (r *CSVRecord) Find(field *ch.Field) (*ch.Const, error) {
 
 		index, err := strconv.ParseInt(name[1:], 10, 0)
 		if err != nil {
-			return nil, fmt.Errorf("Invalid column index %s : %s", name, err)
+			return nil, fmt.Errorf("Invalid column index %s: %s", name, err)
 		}
 
 		return r.AtIndex(int(index))
@@ -48,7 +45,7 @@ func (r *CSVRecord) Find(field *ch.Field) (*ch.Const, error) {
 
 	index := r.ColumnNameIndex(name)
 	if index < 0 {
-		return nil, fmt.Errorf("Can't find field name : %s", name)
+		return nil, fmt.Errorf("Can't find field name: %s", name)
 	}
 
 	return r.AtIndex(index)
@@ -61,7 +58,7 @@ func (r *CSVRecord) AtIndex(index int) (*ch.Const, error) {
 		return nil, fmt.Errorf("index out of bounds %d", index)
 	}
 
-	// FIXME should we accept NULL values
+	// FIXME should we accept NULL values?
 	value := r.record[index]
 	if value == "NULL" {
 		return ch.NullConst(), nil
@@ -73,12 +70,7 @@ func (r *CSVRecord) AtIndex(index int) (*ch.Const, error) {
 // ColumnNameIndex searches the index of the column name into the header of
 // this record. If no header, or a column not found, return -1
 func (r *CSVRecord) ColumnNameIndex(name string) int {
-
-	if r.header == nil {
-		return -1
-	}
-
-	for index, element := range *r.header {
+	for index, element := range r.header {
 		if element == name {
 			return index
 		}
