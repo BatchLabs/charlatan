@@ -8,6 +8,10 @@ import (
 )
 
 // CSVRecord is a CSV record, i.e. a line from a CSV file
+//
+// If created with a header its fields can be retrieved with their column name.
+// In any case, one can use a "$N" field name, where N is the column index,
+// starting at 0.
 type CSVRecord struct {
 	header, record []string
 }
@@ -32,8 +36,7 @@ func (r *CSVRecord) Find(field *ch.Field) (*ch.Const, error) {
 	// Column index
 
 	if name[0] == '$' {
-
-		index, err := strconv.ParseInt(name[1:], 10, 0)
+		index, err := strconv.ParseInt(name[1:], 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("Invalid column index %s: %s", name, err)
 		}
@@ -54,7 +57,7 @@ func (r *CSVRecord) Find(field *ch.Field) (*ch.Const, error) {
 // AtIndex gets the value at the given index
 func (r *CSVRecord) AtIndex(index int) (*ch.Const, error) {
 
-	if index < 0 || int(index) > len(r.record) {
+	if index < 0 || index > len(r.record) {
 		return nil, fmt.Errorf("index out of bounds %d", index)
 	}
 
@@ -67,8 +70,10 @@ func (r *CSVRecord) AtIndex(index int) (*ch.Const, error) {
 	return ch.ConstFromString(value), nil
 }
 
-// ColumnNameIndex searches the index of the column name into the header of
-// this record. If no header, or a column not found, return -1
+// ColumnNameIndex searches the index of the column name in this record’s
+// header. If it doesn’t have a header or if the column wasn’t found, the
+// method returns -1. The column name match is case-sensitive, the first
+// matching one is used.
 func (r *CSVRecord) ColumnNameIndex(name string) int {
 	for index, element := range r.header {
 		if element == name {
