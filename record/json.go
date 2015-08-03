@@ -2,22 +2,28 @@ package record
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	ch "github.com/BatchLabs/charlatan"
 )
 
-// JSONRecord is a record for JSON objects
+// JSONRecord is a record for JSON objects.
+//
+// It supports the special field "*", as in "SELECT * FROM x WHERE y", which
+// returns the JSON as-is, except that the keys order is not garanteed.
 type JSONRecord struct {
-	attrs map[string]json.RawMessage
+	attrs map[string]*json.RawMessage
 }
 
 var _ ch.Record = &JSONRecord{}
 
+var errEmptyField = errors.New("Empty field name")
+
 // NewJSONRecordFromDecoder creates a new JSONRecord from a JSON decoder
 func NewJSONRecordFromDecoder(dec *json.Decoder) (*JSONRecord, error) {
-	attrs := make(map[string]json.RawMessage)
+	attrs := make(map[string]*json.RawMessage)
 
 	if err := dec.Decode(&attrs); err != nil {
 		return nil, err
@@ -28,48 +34,65 @@ func NewJSONRecordFromDecoder(dec *json.Decoder) (*JSONRecord, error) {
 
 // Find implements the charlatan.Record interface
 func (r *JSONRecord) Find(field *ch.Field) (*ch.Const, error) {
-	var partial json.RawMessage
 	var ok bool
+	var partial *json.RawMessage
+	var name string
+
+	if name = field.Name(); len(name) == 0 {
+		return nil, errEmptyField
+	}
+
+	// support for "SELECT *"
+	if name == "*" {
+		b, err := json.Marshal(r.attrs)
+		if err != nil {
+			return nil, err
+		}
+		return ch.StringConst(string(b)), nil
+	}
 
 	attrs := r.attrs
-	parts := strings.Split(field.Name(), ".")
+	parts := strings.Split(name, ".")
 
 	for i, k := range parts {
 		partial, ok = attrs[k]
+
 		if !ok {
 			return nil, fmt.Errorf("Unknown '%s' field (in '%s')", k, field.Name())
 		}
 
 		// update the attrs if we need to go deeper
 		if i < len(parts)-1 {
-			attrs = make(map[string]json.RawMessage)
-			if err := json.Unmarshal(partial, &attrs); err != nil {
+			attrs = make(map[string]*json.RawMessage)
+			if err := json.Unmarshal(*partial, &attrs); err != nil {
 				return nil, err
 			}
 		}
-
 	}
 
 	return jsonToConst(partial)
 }
 
-func jsonToConst(partial json.RawMessage) (*ch.Const, error) {
+func jsonToConst(partial *json.RawMessage) (*ch.Const, error) {
 	var value string
 
-	asString := string(partial)
-
-	// as of 2015-07-28, the tip version of Go parses "null" as an empty string
-	if asString == "" || asString == "null" {
+	if partial == nil {
 		return ch.NullConst(), nil
 	}
 
-	if err := json.Unmarshal(partial, &value); err != nil {
+	asString := string(*partial)
+
+	if asString == "null" {
+		return ch.NullConst(), nil
+	}
+
+	if err := json.Unmarshal(*partial, &value); err != nil {
 		if err, ok := err.(*json.UnmarshalTypeError); ok {
 			// we failed to unmarshal into a string, let's try the other types
 			switch err.Value {
 			case "number":
 				var n json.Number
-				if err := json.Unmarshal(partial, &n); err != nil {
+				if err := json.Unmarshal(*partial, &n); err != nil {
 					return nil, err
 				}
 

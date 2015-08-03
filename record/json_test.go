@@ -139,3 +139,19 @@ func TestJSONReaderMultipleRecords(t *testing.T) {
 	_, err = NewJSONRecordFromDecoder(r)
 	assert.Equal(t, io.EOF, err)
 }
+
+func TestJSONReaderSelectStar(t *testing.T) {
+	r := json.NewDecoder(strings.NewReader(`{"foo": 42}`))
+	require.NotNil(t, r)
+
+	rec, err := NewJSONRecordFromDecoder(r)
+	require.Nil(t, err)
+	require.NotNil(t, rec)
+
+	all, err := rec.Find(ch.NewField("*"))
+	require.Nil(t, err)
+	require.NotNil(t, all)
+
+	require.True(t, all.IsString())
+	require.Equal(t, `{"foo":42}`, all.AsString())
+}
