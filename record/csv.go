@@ -12,6 +12,9 @@ import (
 // If created with a header its fields can be retrieved with their column name.
 // In any case, one can use a "$N" field name, where N is the column index,
 // starting at 0.
+//
+// All values are retrieved as strings, and the special field "*" can be used
+// to get a string representation of the record values.
 type CSVRecord struct {
 	header, record []string
 }
@@ -32,6 +35,10 @@ func NewCSVRecordWithHeader(record []string, header []string) *CSVRecord {
 func (r *CSVRecord) Find(field *ch.Field) (*ch.Const, error) {
 
 	name := field.Name()
+
+	if name == "*" {
+		return ch.StringConst(fmt.Sprintf("%v", r.record)), nil
+	}
 
 	// Column index
 

@@ -38,7 +38,7 @@ func TestFindColumnIndex(t *testing.T) {
 	assert.Equal(t, "b", v.AsString())
 }
 
-func TestFindColumnNamr(t *testing.T) {
+func TestFindColumnName(t *testing.T) {
 	c := NewCSVRecordWithHeader([]string{"a", "b", "c"}, []string{"id", "x", "y"})
 	require.NotNil(t, c)
 
@@ -51,4 +51,14 @@ func TestFindColumnNamr(t *testing.T) {
 	v, err := c.Find(ch.NewField("y"))
 	assert.Nil(t, err)
 	assert.Equal(t, "c", v.AsString())
+}
+
+func TestFindStar(t *testing.T) {
+	c := NewCSVRecord([]string{"x", "y", "z"})
+	require.NotNil(t, c)
+
+	v, err := c.Find(ch.NewField("*"))
+	assert.Nil(t, err)
+	assert.True(t, v.IsString())
+	assert.Equal(t, "[x y z]", v.AsString())
 }
