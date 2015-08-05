@@ -1,3 +1,4 @@
+// Package record provides records for the charlatan package
 package record
 
 import (
