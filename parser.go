@@ -241,7 +241,7 @@ func (p *parser) clauseEnd(tok *token) (state, error) {
 				return unexpected(tok, tokStarting)
 			}
 
-			if p.query.limit == 0 {
+			if !p.query.HasLimit() {
 				return unexpected(tok, tokLimit)
 			}
 		}
@@ -462,7 +462,7 @@ func (p *parser) limit(tok *token) (state, error) {
 			return invalidState, err
 		}
 
-		p.query.limit = c.AsInt()
+		p.query.setLimit(c.AsInt())
 
 		return clauseEnd, nil
 	}

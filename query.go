@@ -14,7 +14,7 @@ type Query struct {
 	// the record index to start from
 	startingAt int64
 	// the record index to stop at
-	limit int64
+	limit *int64
 }
 
 // A Record is a record
@@ -43,9 +43,17 @@ func (q *Query) StartingAt() int64 {
 	return q.startingAt
 }
 
+// HasLimit tests if the query has a limit
+func (q *Query) HasLimit() bool {
+	return q.limit != nil
+}
+
 // Limit returns the 'LIMIT' part of the query, or 0 if it's not present
 func (q *Query) Limit() int64 {
-	return q.limit
+	if q.limit == nil {
+		return 0
+	}
+	return *q.limit
 }
 
 // AddField adds one field
@@ -75,6 +83,10 @@ func (q *Query) setWhere(op operand) {
 	}
 
 	q.expression = op
+}
+
+func (q *Query) setLimit(limit int64) {
+	q.limit = &limit
 }
 
 // FieldsValues extracts the values of each fields into the given record

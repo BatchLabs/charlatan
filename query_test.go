@@ -90,3 +90,13 @@ func TestQueryFromStringInRange(t *testing.T) {
 	assert.True(t, max.IsNumeric())
 	assert.Equal(t, int64(2), max.AsInt())
 }
+
+func TestQueryHasLimit(t *testing.T) {
+	q := NewQuery("foo")
+	assert.False(t, q.HasLimit())
+	assert.Equal(t, int64(0), q.Limit())
+
+	q.setLimit(42)
+	assert.True(t, q.HasLimit())
+	assert.Equal(t, int64(42), q.Limit())
+}
