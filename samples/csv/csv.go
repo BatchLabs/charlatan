@@ -42,6 +42,18 @@ func executeRequest(reader *csv.Reader, query *charlatan.Query) {
 	fmt.Println("$")
 
 	var header []string
+	var limit int64
+
+	hasLimit := query.HasLimit()
+
+	if hasLimit {
+		limit = query.Limit()
+
+		if limit <= 0 {
+			return
+		}
+	}
+
 	line := 0
 
 	for {
@@ -86,6 +98,13 @@ func executeRequest(reader *csv.Reader, query *charlatan.Query) {
 		}
 
 		fmt.Println("# ", values)
+
+		if hasLimit {
+			limit--
+			if limit <= 0 {
+				break
+			}
+		}
 	}
 }
 

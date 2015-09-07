@@ -21,6 +21,8 @@ func fatalf(format string, args ...interface{}) {
 }
 
 func main() {
+	var limit int64
+
 	if len(os.Args) != 2 {
 		usage()
 	}
@@ -38,6 +40,16 @@ func main() {
 	defer reader.Close()
 
 	decoder := json.NewDecoder(reader)
+
+	hasLimit := query.HasLimit()
+
+	if hasLimit {
+		limit = query.Limit()
+
+		if limit <= 0 {
+			return
+		}
+	}
 
 	line := 0
 
@@ -72,5 +84,11 @@ func main() {
 		}
 
 		fmt.Println("# ", values)
+		if hasLimit {
+			limit--
+			if limit <= 0 {
+				break
+			}
+		}
 	}
 }
