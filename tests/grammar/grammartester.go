@@ -45,7 +45,7 @@ func main() {
 		s, err := runTest()
 		if err == nil {
 			good++
-			log.Printf("[OK] %s", s)
+			//log.Printf("[OK] %s", s)
 		} else {
 			log.Printf("[KO] %s", s)
 			log.Printf("     ERR: %v", err)
