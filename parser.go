@@ -17,7 +17,6 @@ const (
 	selectField
 
 	fromInitial
-	fromName
 
 	operationInitial
 	leftOperand
@@ -27,11 +26,13 @@ const (
 	startingInitial
 	startingAt
 
+	limitInitial
+
 	rangeMin
 	rangeAnd
 	rangeMax
 
-	beforeEnd
+	clauseEnd
 	end
 )
 
@@ -97,7 +98,6 @@ func (p *parser) Parse() (*Query, error) {
 	// until the next state is the end
 
 	for p.state != end {
-
 		tok, err := p.lexer.NextToken()
 		if err != nil {
 			return nil, err
@@ -118,8 +118,6 @@ func (p *parser) Parse() (*Query, error) {
 		// FROM
 		case fromInitial:
 			p.state, err = p.fromState(tok)
-		case fromName:
-			p.state, err = p.fromNameState(tok)
 
 		// WHERE
 		case operationInitial:
@@ -146,8 +144,12 @@ func (p *parser) Parse() (*Query, error) {
 		case startingAt:
 			p.state, err = p.startingAt(tok)
 
-		case beforeEnd:
-			p.state, err = p.beforeEnd(tok)
+		// LIMIT
+		case limitInitial:
+			p.state, err = p.limit(tok)
+
+		case clauseEnd:
+			p.state, err = p.clauseEnd(tok)
 
 		// unknown
 		default:
@@ -219,24 +221,33 @@ func (p *parser) fromState(tok *token) (state, error) {
 	p.query.AddFields(p.fields)
 	p.fields = nil
 
-	return fromName, nil
+	return clauseEnd, nil
 }
 
-// We’re waiting for the WHERE keyword, or the end, if there is no condition
-func (p *parser) fromNameState(tok *token) (state, error) {
-	if tok.Type == tokEnd {
+// We’re waiting for any of the WHERE, STARTING, or LIMIT keywords, or the end
+func (p *parser) clauseEnd(tok *token) (state, error) {
+	switch tok.Type {
+	case tokEnd:
 		return end, nil
-	}
-
-	if tok.Type == tokWhere {
+	case tokWhere:
 		return operationInitial, nil
-	}
-
-	if tok.Type == tokStarting {
+	case tokStarting:
 		return startingInitial, nil
-	}
+	case tokLimit:
+		return limitInitial, nil
+	default:
+		if p.query != nil && p.query.expression != nil {
+			if p.query.startingAt == 0 {
+				return unexpected(tok, tokStarting)
+			}
 
-	return unexpected(tok, tokWhere)
+			if p.query.limit == 0 {
+				return unexpected(tok, tokLimit)
+			}
+		}
+
+		return unexpected(tok, tokWhere)
+	}
 }
 
 func tok2operand(tok *token) (operand, error) {
@@ -284,8 +295,11 @@ func (p *parser) operandLeftState(tok *token) (state, error) {
 		return end, nil
 	}
 
-	if tok.Type == tokStarting {
+	switch tok.Type {
+	case tokStarting:
 		return startingInitial, nil
+	case tokLimit:
+		return limitInitial, nil
 	}
 
 	if tok.isLogicalOperator() {
@@ -397,8 +411,11 @@ func (p *parser) operandRightState(tok *token) (state, error) {
 		return invalidState, err
 	}
 
-	if tok.Type == tokStarting {
+	switch tok.Type {
+	case tokStarting:
 		return startingInitial, nil
+	case tokLimit:
+		return limitInitial, nil
 	}
 
 	// the end of the expression
@@ -431,7 +448,23 @@ func (p *parser) startingAt(tok *token) (state, error) {
 
 		p.query.startingAt = c.AsInt()
 
-		return beforeEnd, nil
+		return clauseEnd, nil
+	}
+
+	return unexpected(tok, tokInt)
+}
+
+func (p *parser) limit(tok *token) (state, error) {
+
+	if tok.isNumeric() {
+		c, err := tok.Const()
+		if err != nil {
+			return invalidState, err
+		}
+
+		p.query.limit = c.AsInt()
+
+		return clauseEnd, nil
 	}
 
 	return unexpected(tok, tokInt)
@@ -442,14 +475,6 @@ func (p *parser) expect(expected tokenType, tok *token, state state) (state, err
 		return unexpected(tok, expected)
 	}
 	return state, nil
-}
-
-func (p *parser) beforeEnd(tok *token) (state, error) {
-	if tok.isEnd() {
-		return end, nil
-	}
-
-	return unexpected(tok, tokEnd)
 }
 
 // Push the context and create a new one

@@ -13,6 +13,8 @@ type Query struct {
 	expression operand
 	// the record index to start from
 	startingAt int64
+	// the record index to stop at
+	limit int64
 }
 
 // A Record is a record
@@ -27,7 +29,7 @@ func QueryFromString(s string) (*Query, error) {
 
 // NewQuery creates a new query with the given from part
 func NewQuery(from string) *Query {
-	return &Query{[]*Field{}, from, nil, 0}
+	return &Query{from: from}
 }
 
 // From returns the FROM part of this query
@@ -39,6 +41,11 @@ func (q *Query) From() string {
 // present
 func (q *Query) StartingAt() int64 {
 	return q.startingAt
+}
+
+// Limit returns the 'LIMIT' part of the query, or 0 if it's not present
+func (q *Query) Limit() int64 {
+	return q.limit
 }
 
 // AddField adds one field

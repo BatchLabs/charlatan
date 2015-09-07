@@ -23,6 +23,7 @@ const (
 	tokStarting // STARTING
 	tokAt       // AT
 	tokBetween  // BETWEEN
+	tokLimit    // LIMIT
 	tokKeywordEnd
 
 	// operators
@@ -159,6 +160,8 @@ func (t tokenType) String() string {
 		return "Or"
 	case tokBetween:
 		return "Between"
+	case tokLimit:
+		return "Limit"
 	case tokEq:
 		return "Eq"
 	case tokNeq:

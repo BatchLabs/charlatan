@@ -116,6 +116,8 @@ func (l *lexer) NextToken() (*token, error) {
 		return l.token(tokOr, k, index)
 	case "BETWEEN":
 		return l.token(tokBetween, k, index)
+	case "LIMIT":
+		return l.token(tokLimit, k, index)
 	}
 
 	// special values
