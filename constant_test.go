@@ -209,6 +209,7 @@ func TestConstValue(t *testing.T) {
 
 func TestConstString(t *testing.T) {
 	assert.Equal(t, "42", IntConst(42).String())
+	assert.Equal(t, "\"foobar\"", StringConst("foobar").String())
 }
 
 func TestConstAsFloat(t *testing.T) {

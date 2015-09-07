@@ -173,7 +173,12 @@ func (c Const) Value() interface{} {
 }
 
 func (c Const) String() string {
-	return c.AsString()
+	switch c.constType {
+	case constString:
+		return "\"" + c.stringValue + "\""
+	default:
+		return c.AsString()
+	}
 }
 
 // AsFloat converts into a float64
