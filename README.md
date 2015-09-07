@@ -12,7 +12,7 @@ applied to records to extract values depending on zero or more criteria.
 ## Query Syntax
 
 ```
-SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ]
+SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ] [ LIMIT <count> ]
 ```
 
 - `<fields>` is a list of comma-separated field names. Each field name must
@@ -26,7 +26,8 @@ SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ]
   parentheses (e.g. `WHERE (foo > 2) AND (bar = "yo")`). The parser allows to
   use `&&` instead of `AND` and `||` instead of `OR`. It also support inclusive
   range tests, like `WHERE age BETWEEN 20 AND 30`.
-- `<index>` can be used to skip the first N records.
+- `STARTING AT <index>` can be used to skip the first N records.
+- `LIMIT <count>` can be used to keep only the first N matched records.
 
 Constant values include strings, integers, floats, booleans and the `null`
 value.
