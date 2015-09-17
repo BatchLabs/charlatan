@@ -40,10 +40,10 @@ SELECT name, age FROM sample/json/people.jsons WHERE stats.walking > 30 AND stat
 SELECT name, age FROM sample/json/people.jsons WHERE stats.walking BETWEEN 20 AND 100
 ```
 
-### Type Coercion
+### Type Coercion Rules
 
 * int: same value if the constant is an integer. Truncated value if it’s a
-  float. One if it’s a `true` boolean. `0` for everything else.
+  float. `1` if it’s a `true` boolean. `0` for everything else.
 * float: same value if the constant is an integer or a float. `1.0` if it’s a
   `true` boolean. `0.0` for everything else.
 * boolean: `true` if it’s a string (even if it’s empty), a `true` boolean, a
