@@ -79,6 +79,9 @@ skip := query.StartingAt()
 decoder := json.NewDecoder(reader)
 
 for {
+    // here we use STARTING AT to skip all lines, not only the ones that match
+    // the query. This is not the usual behavior, but we can do whatever we
+    // want here.
     skip--
     if skip >= 0 {
         continue
