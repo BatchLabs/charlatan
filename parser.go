@@ -27,6 +27,8 @@ const (
 	startingAt
 
 	limitInitial
+	limitSep
+	limitMax
 
 	rangeMin
 	rangeAnd
@@ -129,7 +131,7 @@ func (p *parser) Parse() (*Query, error) {
 		case rightOperand:
 			p.state, err = p.operandRightState(tok)
 
-			// range
+		// range
 		case rangeMin:
 			p.state, err = p.rangeMin(tok)
 		case rangeAnd:
@@ -144,9 +146,20 @@ func (p *parser) Parse() (*Query, error) {
 		case startingAt:
 			p.state, err = p.startingAt(tok)
 
-		// LIMIT
+		// LIMIT N
+		//       ^
 		case limitInitial:
 			p.state, err = p.limit(tok)
+
+		// LIMIT N, M
+		//        ^
+		case limitSep:
+			p.state, err = p.limitSep(tok)
+
+		// LIMIT N, M
+		//          ^
+		case limitMax:
+			p.state, err = p.limitMax(tok)
 
 		case clauseEnd:
 			p.state, err = p.clauseEnd(tok)
@@ -455,7 +468,6 @@ func (p *parser) startingAt(tok *token) (state, error) {
 }
 
 func (p *parser) limit(tok *token) (state, error) {
-
 	if tok.isNumeric() {
 		c, err := tok.Const()
 		if err != nil {
@@ -464,7 +476,31 @@ func (p *parser) limit(tok *token) (state, error) {
 
 		p.query.setLimit(c.AsInt())
 
-		return clauseEnd, nil
+		return limitSep, nil
+	}
+
+	return unexpected(tok, tokInt)
+}
+
+func (p *parser) limitSep(tok *token) (state, error) {
+	if tok.Type == tokComma {
+		return limitMax, nil
+	}
+
+	return p.clauseEnd(tok)
+}
+
+func (p *parser) limitMax(tok *token) (state, error) {
+	if tok.isNumeric() {
+		c, err := tok.Const()
+		if err != nil {
+			return invalidState, err
+		}
+
+		p.query.startingAt = p.query.Limit()
+		p.query.setLimit(c.AsInt())
+
+		return limitSep, nil
 	}
 
 	return unexpected(tok, tokInt)

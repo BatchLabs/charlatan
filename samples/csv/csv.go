@@ -55,11 +55,11 @@ func executeRequest(reader *csv.Reader, query *charlatan.Query) {
 	}
 
 	line := 0
+	offset := query.StartingAt()
 
 	for {
 
 		records, err := reader.Read()
-		line++
 
 		// end of file
 		if err == io.EOF {
@@ -89,6 +89,14 @@ func executeRequest(reader *csv.Reader, query *charlatan.Query) {
 		if !match {
 			continue
 		}
+
+		offset--
+
+		if offset > 0 {
+			continue
+		}
+
+		line++
 
 		// extract the fields
 		values, err := query.FieldsValues(r)

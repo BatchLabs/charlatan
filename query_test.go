@@ -100,3 +100,13 @@ func TestQueryHasLimit(t *testing.T) {
 	assert.True(t, q.HasLimit())
 	assert.Equal(t, int64(42), q.Limit())
 }
+
+func TestQueryFromStringLimitOffset(t *testing.T) {
+	q, err := QueryFromString("SELECT a FROM b WHERE a LIMIT 40, 100")
+	require.Nil(t, err)
+	assert.NotNil(t, q)
+
+	assert.Equal(t, int64(40), q.startingAt)
+	assert.True(t, q.HasLimit())
+	assert.Equal(t, int64(100), q.Limit())
+}

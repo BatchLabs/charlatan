@@ -52,10 +52,9 @@ func main() {
 	}
 
 	line := 0
+	offset := query.StartingAt()
 
 	for {
-		line++
-
 		r, err := record.NewJSONRecordFromDecoder(decoder)
 
 		// end of file
@@ -76,6 +75,14 @@ func main() {
 		if !match {
 			continue
 		}
+
+		offset--
+
+		if offset > 0 {
+			continue
+		}
+
+		line++
 
 		// extract the fields
 		values, err := query.FieldsValues(r)

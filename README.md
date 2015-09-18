@@ -12,7 +12,7 @@ applied to records to extract values depending on zero or more criteria.
 ## Query Syntax
 
 ```
-SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ] [ LIMIT <count> ]
+SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ] [ LIMIT [<offset>,] <count> ]
 ```
 
 - `<fields>` is a list of comma-separated field names. Each field name must
@@ -26,8 +26,12 @@ SELECT <fields> FROM <source> [ WHERE <value> ] [ STARTING AT <index> ] [ LIMIT 
   parentheses (e.g. `WHERE (foo > 2) AND (bar = "yo")`). The parser allows to
   use `&&` instead of `AND` and `||` instead of `OR`. It also support inclusive
   range tests, like `WHERE age BETWEEN 20 AND 30`.
-- `STARTING AT <index>` can be used to skip the first N records.
-- `LIMIT <count>` can be used to keep only the first N matched records.
+- `LIMIT N` can be used to keep only the first N matched records. It also
+  support the MySQL way to specify offsets: `LIMIT M, N` can be used to get the
+  first N matched records after the M-th.
+- `STARTING AT <index>` can be used to skip the first N records. It’s
+  equivalent to the `<offset>` field of the `LIMIT` clause, and if both clauses
+  are used in a query, the last one will be used.
 
 Constant values include strings, integers, floats, booleans and the `null`
 value.
@@ -37,7 +41,7 @@ value.
 ```sql
 SELECT CountryName FROM sample/csv/population.csv WHERE Year = 2010 AND Value > 50000000 AND Value < 70000000
 SELECT name, age FROM sample/json/people.jsons WHERE stats.walking > 30 AND stats.biking < 300
-SELECT name, age FROM sample/json/people.jsons WHERE stats.walking BETWEEN 20 AND 100
+SELECT name, age FROM sample/json/people.jsons WHERE stats.walking BETWEEN 20 AND 100 LIMIT 10, 5
 ```
 
 ### Type Coercion Rules

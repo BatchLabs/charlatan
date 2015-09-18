@@ -1,7 +1,7 @@
 query = "SELECT" 1*SP select 1*SP
         "FROM" 1*SP field *1( 1*SP "WHERE" 1*SP expressions )
         *1( 1*SP "STARTING" 1*SP "AT" 1*SP int )
-        *1( 1*SP "LIMIT" 1*SP int )
+        *1( 1*SP "LIMIT" 1*SP int ( *SP "," *SP int ) )
 
 select = field *( *SP "," *SP field )
 
