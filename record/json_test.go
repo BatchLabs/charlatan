@@ -34,16 +34,30 @@ func TestFindUnexistingField(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func TestFindNotAConstField(t *testing.T) {
+func TestFindArrayField(t *testing.T) {
 	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
 	require.Nil(t, err)
 	require.NotNil(t, r)
 
-	_, err = r.Find(ch.NewField("we"))
-	assert.NotNil(t, err)
+	c, err := r.Find(ch.NewField("a"))
+	require.Nil(t, err)
+	require.NotNil(t, c)
 
-	_, err = r.Find(ch.NewField("a"))
-	assert.NotNil(t, err)
+	require.True(t, c.IsString())
+	require.Equal(t, `[]`, c.AsString())
+}
+
+func TestFindObjectField(t *testing.T) {
+	r, err := NewJSONRecordFromDecoder(testJSONDecoder())
+	require.Nil(t, err)
+	require.NotNil(t, r)
+
+	c, err := r.Find(ch.NewField("we"))
+	require.Nil(t, err)
+	require.NotNil(t, c)
+
+	require.True(t, c.IsString())
+	require.Equal(t, `{"need": {"to": {"go": {"deeper": 1, "a": "d"}}}}`, c.AsString())
 }
 
 func TestFindTopLevelStringField(t *testing.T) {
