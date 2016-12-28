@@ -109,7 +109,7 @@ func jsonToConst(partial *json.RawMessage) (*ch.Const, error) {
 
 				value = n.String()
 
-			case "bool":
+			case "bool", "object", "array":
 				value = asString
 
 			default:
